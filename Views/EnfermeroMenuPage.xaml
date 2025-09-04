@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.EnfermeroMenuPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="Menú Enfermero">
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+            <Label Text="Bienvenido, Enfermero" 
+                   FontSize="24" 
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center" />
+
+            <Button Text="Ver Pacientes" />
+            <Button Text="Registrar Signos Vitales" />
+            <Button Text="Ver Citas del Día" />
+            <Button Text="Cerrar Sesión" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

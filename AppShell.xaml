@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ClinicaApp.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:ClinicaApp"
+    xmlns:views="clr-namespace:ClinicaApp.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Title="ClinicaApp">
+
+    <!-- Login (inicial) -->
+    <ShellContent x:Name="LoginShell"
+                  Title="Login"
+                  ContentTemplate="{DataTemplate views:LoginPage}"
+                  Route="LoginPage" />
+
+    <!-- Administrador -->
+    <TabBar x:Name="AdminTabs" Route="AdminMenuPage">
+        <Tab Title="Médicos">
+            <ShellContent ContentTemplate="{DataTemplate views:MedicoRegistroPage}" 
+                         Route="MedicoRegistroPage"/>
+        </Tab>
+        <!--<Tab Title="Horarios">
+            <ShellContent ContentTemplate="{DataTemplate views:HorarioConsultaPage}"
+                         Route="HorarioConsultaPage"/>
+        </Tab>-->
+    </TabBar>
+
+    <!-- Recepcionista -->
+    <TabBar x:Name="RecepcionistaTabs" Route="RecepcionistaMenuPage">
+        <Tab Title="Citas">
+            <ShellContent ContentTemplate="{DataTemplate views:CitaCreacionPage}"
+                         Route="CitaCreacionPage"/>
+        </Tab>
+        <!--<Tab Title="Pacientes">
+            <ShellContent ContentTemplate="{DataTemplate views:PacienteBusquedaPage}"
+                         Route="PacienteBusquedaPage"/>
+        </Tab>-->
+    </TabBar>
+    <!-- Enfermero -->
+    <TabBar x:Name="EnfermeroTabs" Route="EnfermeroMenuPage">
+        <Tab Title="Pacientes">
+            <ShellContent ContentTemplate="{DataTemplate views:EnfermeroMenuPage}"
+                         Route="PacienteListaPage"/>
+        </Tab>
+    </TabBar>
+</Shell>

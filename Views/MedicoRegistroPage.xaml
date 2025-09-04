@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.MedicoRegistroPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClinicaApp.ViewModels"
+             Title="{Binding Title}"
+             x:DataType="vm:MedicoRegistroViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Registro de Médico" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"/>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}"
+                              IsRunning="{Binding IsLoading}"
+                              Color="{StaticResource Primary}"/>
+
+            <Entry Placeholder="Nombres *"
+                   Text="{Binding Nombres}"/>
+
+            <Entry Placeholder="Apellidos *"
+                   Text="{Binding Apellidos}"/>
+
+            <Entry Placeholder="Cédula *"
+                   Text="{Binding Cedula}"
+                   Keyboard="Numeric"/>
+
+            <Entry Placeholder="Correo electrónico *"
+                   Text="{Binding Correo}"
+                   Keyboard="Email"/>
+
+            <Entry Placeholder="Contraseña *"
+                   Text="{Binding Contrasena}"
+                   IsPassword="True"/>
+
+            <Entry Placeholder="Título Profesional (Dr., MSc.)"
+                   Text="{Binding TituloProfesional}"/>
+
+            <Entry Placeholder="Número de Colegio"
+                   Text="{Binding NumeroColegio}"/>
+
+            <Picker Title="Seleccione Especialidad *"
+                    ItemsSource="{Binding Especialidades}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding EspecialidadSeleccionada}"/>
+
+            <Picker Title="Seleccione Sucursal *"
+                    ItemsSource="{Binding Sucursales}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding SucursalSeleccionada}"/>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   IsVisible="{Binding HasError}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Buttons -->
+            <Button Text="Guardar Médico"
+                    Command="{Binding GuardarMedicoCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"/>
+
+            <Button Text="Limpiar Formulario"
+                    Command="{Binding LimpiarFormularioCommand}"
+                    BackgroundColor="{StaticResource Secondary}"
+                    TextColor="White"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

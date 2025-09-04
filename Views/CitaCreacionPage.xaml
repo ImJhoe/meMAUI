@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.CitaCreacionPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClinicaApp.ViewModels"
+             Title="{Binding Title}"
+             x:DataType="vm:CitaViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="15">
+
+            <Label Text="Crear Nueva Cita" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"/>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}"
+                              IsRunning="{Binding IsLoading}"
+                              Color="{StaticResource Primary}"/>
+
+            <!-- Buscar Paciente -->
+            <Label Text="Buscar Paciente" FontAttributes="Bold"/>
+
+            <Entry Placeholder="Número de cédula"
+                   Text="{Binding CedulaPaciente}"/>
+
+            <Button Text="Buscar Paciente"
+                    Command="{Binding BuscarPacienteCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"/>
+
+            <!-- Resultado de búsqueda -->
+            <StackLayout IsVisible="{Binding MostrandoPaciente}">
+
+                <!-- Paciente encontrado -->
+                <StackLayout IsVisible="{Binding PacienteExiste}">
+                    <Label Text="Paciente Encontrado:" FontAttributes="Bold" TextColor="Green"/>
+                    <Label Text="{Binding PacienteEncontrado.NombreCompleto}"/>
+                    <Label Text="{Binding PacienteEncontrado.Correo}"/>
+                </StackLayout>
+
+                <!-- Paciente no existe -->
+                <StackLayout IsVisible="{Binding PacienteExiste, Converter={StaticResource InvertedBoolConverter}}">
+                    <Label Text="Paciente no encontrado" TextColor="Orange"/>
+                    <Button Text="Registrar Nuevo Paciente"
+                            Command="{Binding IrARegistroPacienteCommand}"
+                            BackgroundColor="{StaticResource Secondary}"/>
+                </StackLayout>
+
+            </StackLayout>
+
+            <!-- Error Message -->
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   IsVisible="{Binding HasError}"
+                   HorizontalOptions="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.LoginPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClinicaApp.ViewModels"
+             Title="{Binding Title}"
+             x:DataType="vm:LoginViewModel">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30" VerticalOptions="Center" Spacing="20">
+
+            <Label Text="Clínica App" 
+                   FontSize="32" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   TextColor="{StaticResource Primary}"/>
+
+            <Label Text="Bienvenido" 
+                   FontSize="18" 
+                   HorizontalOptions="Center"/>
+
+            <Entry Text="{Binding Email}"
+       Placeholder="Usuario (ej: admin)"
+       Keyboard="Default"/>
+            <!-- Cambiar de Email a Default -->
+
+            <!-- Password Entry -->
+            <Entry Text="{Binding Password}"
+                   Placeholder="Contraseña"
+                   IsPassword="True"/>
+
+            <!-- Login Button -->
+            <Button Text="Iniciar Sesión"
+                    Command="{Binding LoginCommand}"
+                    BackgroundColor="{StaticResource Primary}"
+                    TextColor="White"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+            <!-- Loading Indicator -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}"
+                               IsRunning="{Binding IsLoading}"
+                               Color="{StaticResource Primary}"/>
+
+            <!-- Error Label -->
+            <Label Text="{Binding ErrorMessage}"
+                   TextColor="Red"
+                   HorizontalOptions="Center"
+                   IsVisible="{Binding HasError}"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
