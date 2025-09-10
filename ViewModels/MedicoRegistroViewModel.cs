@@ -259,61 +259,58 @@ namespace ClinicaApp.ViewModels
             {
                 System.Diagnostics.Debug.WriteLine("[MEDICO REG] Iniciando guardado...");
 
-                // Validaciones
-                if (string.IsNullOrWhiteSpace(Cedula) || string.IsNullOrWhiteSpace(Nombres) ||
-                    string.IsNullOrWhiteSpace(Apellidos) || EspecialidadSeleccionada == null)
-                {
-                    ShowError("Complete todos los campos obligatorios");
-                    return;
-                }
-
-                if (SucursalesSeleccionadas.Count == 0)
-                {
-                    ShowError("Seleccione al menos una sucursal");
-                    return;
-                }
-
                 ShowLoading(true);
 
-                // ✅ CORREGIR: Usar las propiedades correctas
+                if (!ValidarFormulario())
+                {
+                    ShowLoading(false);
+                    return;
+                }
+
                 var medico = new Medico
                 {
-                    Cedula = Cedula.Trim(),
                     Nombres = Nombres.Trim(),
                     Apellidos = Apellidos.Trim(),
+                    Cedula = Cedula.Trim(),
                     Correo = Correo.Trim(),
-                    Contrasena = Contrasena, // ✅ Usar la propiedad correcta
-                    TituloProfesional = TituloProfesional.Trim(),
-                    Sexo = SexoSeleccionado, // En lugar de Sexo = Sexo,
+                    Contrasena = "123456", // Contraseña por defecto
+                    Sexo = "M", // Por defecto masculino
                     Nacionalidad = "Ecuatoriana",
-                    IdEspecialidad = EspecialidadSeleccionada.IdEspecialidad,
-                    IdSucursal = SucursalesSeleccionadas.First().IdSucursal
+                    TituloProfesional = TituloProfesional?.Trim() ?? "",
+                    NumeroColegio = "", // Campo opcional
+                    IdEspecialidad = EspecialidadSeleccionada?.IdEspecialidad ?? 0,
+                    IdSucursal = SucursalesSeleccionadas.FirstOrDefault()?.IdSucursal ?? 0
                 };
 
                 System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Médico a guardar:");
-                System.Diagnostics.Debug.WriteLine($"  - Nombre: {medico.NombreCompleto}");
+                System.Diagnostics.Debug.WriteLine($"  - Nombre: {medico.TituloProfesional} {medico.Nombres} {medico.Apellidos}");
                 System.Diagnostics.Debug.WriteLine($"  - Cédula: {medico.Cedula}");
-                System.Diagnostics.Debug.WriteLine($"  - Especialidad: {EspecialidadSeleccionada.NombreEspecialidad}");
+                System.Diagnostics.Debug.WriteLine($"  - Especialidad: {EspecialidadSeleccionada?.NombreEspecialidad}");
 
-                // Guardar médico
                 var response = await _apiService.CrearMedicoAsync(medico);
 
                 if (response.Success)
                 {
-                    System.Diagnostics.Debug.WriteLine("[MEDICO REG] Médico guardado exitosamente");
+                    System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Médico guardado exitosamente");
 
-                    // Si hay horarios, asignarlos
-                    if (HorariosAsignados.Count > 0 && response.Data != null)
+                    // ✅ CORREGIR: Usar el ID correcto del médico creado
+                    var medicoCreado = response.Data;
+                    int idMedicoCreado = medicoCreado.IdMedico > 0 ? medicoCreado.IdMedico : medicoCreado.IdDoctor;
+
+                    System.Diagnostics.Debug.WriteLine($"[MEDICO REG] ID del médico creado: {idMedicoCreado}");
+
+                    if (HorariosAsignados.Any())
                     {
                         System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Asignando {HorariosAsignados.Count} horarios");
 
-                        // DESPUÉS:
+                        // ✅ CORREGIR: Asignar el ID correcto a cada horario
                         foreach (var horario in HorariosAsignados)
                         {
-                            horario.IdMedico = response.Data.IdDoctor; // ✅ Usar IdDoctor de la respuesta API
+                            horario.IdMedico = idMedicoCreado;
+                            System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Horario: Sucursal={horario.IdSucursal}, Día={horario.DiaSemana}, {horario.HoraInicio}-{horario.HoraFin}");
                         }
 
-                        var horariosResponse = await _apiService.AsignarHorariosAsync(response.Data.IdDoctor, HorariosAsignados.ToList());
+                        var horariosResponse = await _apiService.AsignarHorariosAsync(idMedicoCreado, HorariosAsignados.ToList());
 
                         if (horariosResponse.Success)
                         {
@@ -346,6 +343,59 @@ namespace ClinicaApp.ViewModels
                 ShowLoading(false);
             }
         }
+        // ✅ AGREGAR: Método ValidarFormulario que falta
+        private bool ValidarFormulario()
+        {
+            if (string.IsNullOrWhiteSpace(Cedula))
+            {
+                ShowError("La cédula es requerida");
+                return false;
+            }
+
+            if (Cedula.Length != 10)
+            {
+                ShowError("La cédula debe tener 10 dígitos");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Nombres))
+            {
+                ShowError("Los nombres son requeridos");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Apellidos))
+            {
+                ShowError("Los apellidos son requeridos");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(Correo))
+            {
+                ShowError("El correo es requerido");
+                return false;
+            }
+
+            if (!Correo.Contains("@") || !Correo.Contains("."))
+            {
+                ShowError("El formato del correo es inválido");
+                return false;
+            }
+
+            if (EspecialidadSeleccionada == null)
+            {
+                ShowError("Debe seleccionar una especialidad");
+                return false;
+            }
+
+            if (!SucursalesSeleccionadas.Any())
+            {
+                ShowError("Debe seleccionar al menos una sucursal");
+                return false;
+            }
+
+            return true;
+        }
 
         private void LimpiarFormulario()
         {
@@ -368,5 +418,6 @@ namespace ClinicaApp.ViewModels
         {
             await Shell.Current.GoToAsync("//AdminMenuPage");
         }
+
     }
 }

@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.MedicoConsultaPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ClinicaApp.ViewModels"
+             Title="Consultar Médicos - Punto 2">
+
+    <ContentPage.BindingContext>
+        <viewmodels:MedicoConsultaViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <Grid Padding="20" RowDefinitions="Auto,*">
+
+            <!-- HEADER -->
+            <StackLayout Grid.Row="0" Spacing="15" Margin="0,0,0,20">
+                <Label Text="GESTIÓN DE MÉDICOS Y HORARIOS" 
+                       FontSize="22" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center"
+                       TextColor="DarkBlue"/>
+
+                <Label Text="Consultar médicos, ver y actualizar horarios" 
+                       FontSize="14" 
+                       HorizontalOptions="Center"
+                       TextColor="Gray"/>
+
+                <!-- Botón para recargar datos -->
+                <Button Text="🔄 Recargar Médicos"
+                        BackgroundColor="Blue"
+                        TextColor="White"
+                        Command="{Binding CargarMedicosCommand}"
+                        IsEnabled="{Binding IsNotLoading}"/>
+            </StackLayout>
+
+            <!-- CONTENIDO PRINCIPAL -->
+            <StackLayout Grid.Row="1" Spacing="20">
+
+                <!-- LOADING INDICATOR -->
+                <ActivityIndicator IsVisible="{Binding IsLoading}" 
+                                   IsRunning="{Binding IsLoading}"
+                                   Color="Blue" />
+
+                <!-- ERROR MESSAGE -->
+                <Label Text="{Binding ErrorMessage}" 
+                       TextColor="Red" 
+                       IsVisible="{Binding HasError}"
+                       HorizontalOptions="Center"/>
+
+                <!-- LISTA DE MÉDICOS -->
+                <CollectionView ItemsSource="{Binding Medicos}"
+                                IsVisible="{Binding IsNotLoading}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Frame BackgroundColor="White" 
+                                   BorderColor="LightGray" 
+                                   CornerRadius="10" 
+                                   Margin="0,5"
+                                   Padding="15">
+
+                                <StackLayout Spacing="10">
+
+                                    <!-- INFO DEL MÉDICO -->
+                                    <StackLayout Orientation="Horizontal" Spacing="10">
+                                        <Label Text="👨‍⚕️" FontSize="20" VerticalOptions="Center"/>
+                                        <StackLayout VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+                                            <Label Text="{Binding NombreCompleto}" 
+                                                   FontSize="18" 
+                                                   FontAttributes="Bold" 
+                                                   TextColor="DarkBlue"/>
+                                            <Label Text="{Binding NombreEspecialidad}" 
+                                                   FontSize="14" 
+                                                   TextColor="DarkGreen"/>
+                                            <Label Text="{Binding Cedula, StringFormat='Cédula: {0}'}" 
+                                                   FontSize="12" 
+                                                   TextColor="Gray"/>
+                                        </StackLayout>
+                                    </StackLayout>
+
+                                    <!-- BOTONES DE ACCIÓN -->
+                                    <StackLayout Orientation="Horizontal" Spacing="10">
+                                        <Button Text="📅 Ver Horarios"
+                                                BackgroundColor="Green"
+                                                TextColor="White"
+                                                FontSize="12"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MedicoConsultaViewModel}}, Path=VerHorariosCommand}"
+                                                CommandParameter="{Binding .}"
+                                                HorizontalOptions="FillAndExpand"/>
+
+                                        <Button Text="✏️ Editar Horarios"
+                                                BackgroundColor="Orange"
+                                                TextColor="White"
+                                                FontSize="12"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MedicoConsultaViewModel}}, Path=EditarHorariosCommand}"
+                                                CommandParameter="{Binding .}"
+                                                HorizontalOptions="FillAndExpand"/>
+                                    </StackLayout>
+
+                                    <!-- HORARIOS DEL MÉDICO (si están cargados) -->
+                                    <CollectionView ItemsSource="{Binding HorariosAsignados}"
+                                                    IsVisible="{Binding MostrarHorarios}">
+                                        <CollectionView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Frame BackgroundColor="LightBlue" 
+                                                       CornerRadius="5" 
+                                                       Margin="0,2" 
+                                                       Padding="10">
+                                                    <StackLayout Orientation="Horizontal" Spacing="10">
+                                                        <Label Text="🕐" FontSize="16" VerticalOptions="Center"/>
+                                                        <StackLayout HorizontalOptions="FillAndExpand">
+                                                            <Label Text="{Binding HorarioTexto}" 
+                                                                   FontSize="14" 
+                                                                   FontAttributes="Bold"/>
+                                                            <Label Text="{Binding NombreSucursal, StringFormat='Sucursal: {0}'}" 
+                                                                   FontSize="12" 
+                                                                   TextColor="DarkBlue"/>
+                                                        </StackLayout>
+                                                        <Button Text="📝"
+                                                                BackgroundColor="DarkOrange"
+                                                                TextColor="White"
+                                                                FontSize="12"
+                                                                WidthRequest="40"
+                                                                HeightRequest="40"
+                                                                Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:MedicoConsultaViewModel}}, Path=EditarHorarioIndividualCommand}"
+                                                                CommandParameter="{Binding .}"/>
+                                                    </StackLayout>
+                                                </Frame>
+                                            </DataTemplate>
+                                        </CollectionView.ItemTemplate>
+                                    </CollectionView>
+
+                                </StackLayout>
+                            </Frame>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- MENSAJE SI NO HAY MÉDICOS -->
+                <StackLayout IsVisible="{Binding NoHayMedicos}" 
+                             HorizontalOptions="Center" 
+                             VerticalOptions="Center"
+                             Spacing="10">
+                    <Label Text="👨‍⚕️" FontSize="50" HorizontalOptions="Center"/>
+                    <Label Text="No hay médicos registrados" 
+                           FontSize="16" 
+                           HorizontalOptions="Center"
+                           TextColor="Gray"/>
+                    <Label Text="Use el Punto 1 para registrar médicos" 
+                           FontSize="14" 
+                           HorizontalOptions="Center"
+                           TextColor="Gray"/>
+                </StackLayout>
+
+            </StackLayout>
+
+            <!-- BOTÓN VOLVER -->
+            <Button Grid.Row="2"
+                    Text="⬅️ Volver al Menú Admin"
+                    BackgroundColor="Gray"
+                    TextColor="White"
+                    Margin="0,20,0,0"
+                    Command="{Binding VolverAlMenuCommand}"/>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>

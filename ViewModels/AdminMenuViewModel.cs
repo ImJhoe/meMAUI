@@ -1,4 +1,4 @@
-using ClinicaApp.Services;
+ï»¿using ClinicaApp.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -35,28 +35,28 @@ namespace ClinicaApp.ViewModels
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[ADMIN] Navegando a registro de médico");
+                System.Diagnostics.Debug.WriteLine("[ADMIN] Navegando a registro de mÃ©dico");
                 await Shell.Current.GoToAsync("//MedicoRegistroPage");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[ADMIN] Error navegando: {ex.Message}");
-                ShowError("Error al navegar al registro de médicos");
+                ShowError("Error al navegar al registro de mÃ©dicos");
             }
         }
 
+        // âœ… NUEVO: Comando para Punto 2
         [RelayCommand]
         private async Task IrAConsultaMedico()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[ADMIN] Navegando a consulta de médicos");
+                System.Diagnostics.Debug.WriteLine("[ADMIN MENU] Navegando a consulta mÃ©dicos");
                 await Shell.Current.GoToAsync("//MedicoConsultaPage");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ADMIN] Error navegando: {ex.Message}");
-                ShowError("Error al navegar a la consulta de médicos");
+                System.Diagnostics.Debug.WriteLine($"[ADMIN MENU] Error navegaciÃ³n consulta: {ex.Message}");
             }
         }
 
@@ -65,20 +65,19 @@ namespace ClinicaApp.ViewModels
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[ADMIN] Navegando a creación de citas");
+                System.Diagnostics.Debug.WriteLine("[ADMIN MENU] Navegando a creaciÃ³n cita");
                 await Shell.Current.GoToAsync("//CitaCreacionPage");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[ADMIN] Error navegando: {ex.Message}");
-                ShowError("Error al navegar a la creación de citas");
+                System.Diagnostics.Debug.WriteLine($"[ADMIN MENU] Error navegaciÃ³n cita: {ex.Message}");
             }
         }
 
         [RelayCommand]
         private async Task VerTodasFunciones()
         {
-            ShowError("Función en desarrollo: Panel completo de administración");
+            ShowError("FunciÃ³n en desarrollo: Panel completo de administraciÃ³n");
         }
 
         [RelayCommand]
@@ -86,7 +85,7 @@ namespace ClinicaApp.ViewModels
         {
             try
             {
-                // Limpiar datos de sesión
+                // Limpiar datos de sesiÃ³n
                 SecureStorage.RemoveAll();
 
                 // Volver al login
@@ -95,7 +94,7 @@ namespace ClinicaApp.ViewModels
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[LOGOUT] Error: {ex.Message}");
-                ShowError("Error al cerrar sesión");
+                ShowError("Error al cerrar sesiÃ³n");
             }
         }
     }

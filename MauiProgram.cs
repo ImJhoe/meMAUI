@@ -40,12 +40,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<LoginViewModel>();
         builder.Services.AddSingleton<AdminMenuViewModel>();
         builder.Services.AddSingleton<MedicoRegistroViewModel>();
+        builder.Services.AddSingleton<MedicoConsultaViewModel>();
 
 
         // ✅ REGISTRAR PAGES COMO TRANSIENT
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<AdminMenuPage>();
         builder.Services.AddTransient<MedicoRegistroPage>();
+        builder.Services.AddTransient<MedicoConsultaPage>();
         builder.Services.AddTransient<CitaCreacionPage>();
 
 #if DEBUG

@@ -22,6 +22,7 @@
                    FontSize="16" 
                    HorizontalOptions="Center"/>
 
+            <!-- PUNTO 1 -->
             <Frame BackgroundColor="LightBlue" Padding="15">
                 <StackLayout>
                     <Label Text="PUNTO 1: Registro de Médicos" 
@@ -34,13 +35,26 @@
                 </StackLayout>
             </Frame>
 
+            <!-- ✅ PUNTO 2 NUEVO -->
             <Frame BackgroundColor="LightGreen" Padding="15">
+                <StackLayout>
+                    <Label Text="PUNTO 2: Consultar Médicos y Horarios" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    <Button Text="Consultar y Editar Médicos"
+                            BackgroundColor="Green"
+                            TextColor="White"
+                            Command="{Binding IrAConsultaMedicoCommand}"/>
+                </StackLayout>
+            </Frame>
+
+            <Frame BackgroundColor="LightCoral" Padding="15">
                 <StackLayout>
                     <Label Text="ACCESO COMPLETO ADMIN" 
                            FontSize="18" 
                            FontAttributes="Bold"/>
                     <Button Text="Gestionar Citas (Recepcionista)"
-                            BackgroundColor="Green"
+                            BackgroundColor="Coral"
                             TextColor="White"
                             Command="{Binding IrACreacionCitaCommand}"/>
                 </StackLayout>

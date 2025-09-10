@@ -25,10 +25,11 @@
         ContentTemplate="{DataTemplate views:MedicoRegistroPage}"
         Route="MedicoRegistroPage" />
 
-    <!--<ShellContent
+    <!-- ✅ NUEVO: Punto 2 -->
+    <ShellContent
         Title="Consultar Médicos"
         ContentTemplate="{DataTemplate views:MedicoConsultaPage}"
-        Route="MedicoConsultaPage" />-->
+        Route="MedicoConsultaPage" />
 
     <!-- RECEPCIONISTA -->
     <!--<ShellContent

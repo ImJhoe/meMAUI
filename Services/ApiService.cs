@@ -357,14 +357,51 @@ namespace ClinicaApp.Services
             }
         }
         // Métodos para horarios - USAR TU MODELO HORARIO
+        // ✅ CORREGIR: Método para asignar horarios
         public async Task<ApiResponse<bool>> AsignarHorariosAsync(int idMedico, List<Horario> horarios)
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine($"[API] Asignando {horarios.Count} horarios al médico {idMedico}");
 
-                var data = new { id_medico = idMedico, horarios };
-                return await PostAsync<bool>("api/horarios", data);
+                // ✅ CAMBIO CRÍTICO: Enviar horarios uno por uno
+                var resultados = new List<bool>();
+
+                foreach (var horario in horarios)
+                {
+                    // Preparar datos en el formato que espera tu API PHP
+                    var data = new
+                    {
+                        id_medico = idMedico,
+                        id_sucursal = horario.IdSucursal,
+                        dia_semana = horario.DiaSemana,
+                        hora_inicio = horario.HoraInicio,
+                        hora_fin = horario.HoraFin,
+                        duracion_cita = horario.IntervaloMinutos  // ✅ CORREGIR: Usar IntervaloMinutos
+                    };
+
+                    var json = JsonSerializer.Serialize(data, _jsonOptions);
+                    System.Diagnostics.Debug.WriteLine($"[API] Enviando horario: {json}");
+
+                    var response = await PostAsync<object>("api/horarios", data);
+                    resultados.Add(response.Success);
+
+                    if (!response.Success)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[API ERROR] Horario falló: {response.Message}");
+                        return new ApiResponse<bool>
+                        {
+                            Success = false,
+                            Message = $"Error asignando horario: {response.Message}"
+                        };
+                    }
+                }
+
+                return new ApiResponse<bool>
+                {
+                    Success = true,
+                    Message = $"Se asignaron {resultados.Count} horarios exitosamente"
+                };
             }
             catch (Exception ex)
             {
@@ -373,6 +410,24 @@ namespace ClinicaApp.Services
                 {
                     Success = false,
                     Message = $"Error asignando horarios: {ex.Message}"
+                };
+            }
+        }
+        // ✅ AGREGAR: Método para obtener horarios por médico
+        public async Task<ApiResponse<List<Horario>>> ObtenerHorariosPorMedicoAsync(int idMedico)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[API] Obteniendo horarios para médico ID: {idMedico}");
+                return await GetAsync<List<Horario>>($"api/horarios/medico/{idMedico}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Obtener horarios médico: {ex.Message}");
+                return new ApiResponse<List<Horario>>
+                {
+                    Success = false,
+                    Message = $"Error obteniendo horarios del médico: {ex.Message}"
                 };
             }
         }
