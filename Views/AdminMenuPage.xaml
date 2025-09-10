@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.AdminMenuPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ClinicaApp.ViewModels"
+             Title="Admin Menu">
+
+    <ContentPage.BindingContext>
+        <viewmodels:AdminMenuViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <Label Text="PANEL ADMINISTRADOR" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   HorizontalOptions="Center"
+                   TextColor="Blue"/>
+
+            <Label Text="{Binding UserName}" 
+                   FontSize="16" 
+                   HorizontalOptions="Center"/>
+
+            <Frame BackgroundColor="LightBlue" Padding="15">
+                <StackLayout>
+                    <Label Text="PUNTO 1: Registro de Médicos" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    <Button Text="Registrar Médico + Horarios"
+                            BackgroundColor="Blue"
+                            TextColor="White"
+                            Command="{Binding IrARegistroMedicoCommand}"/>
+                </StackLayout>
+            </Frame>
+
+            <Frame BackgroundColor="LightGreen" Padding="15">
+                <StackLayout>
+                    <Label Text="ACCESO COMPLETO ADMIN" 
+                           FontSize="18" 
+                           FontAttributes="Bold"/>
+                    <Button Text="Gestionar Citas (Recepcionista)"
+                            BackgroundColor="Green"
+                            TextColor="White"
+                            Command="{Binding IrACreacionCitaCommand}"/>
+                </StackLayout>
+            </Frame>
+
+            <Button Text="Cerrar Sesión"
+                    BackgroundColor="Red"
+                    TextColor="White"
+                    Command="{Binding LogoutCommand}"/>
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

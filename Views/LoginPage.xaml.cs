@@ -1,12 +1,13 @@
-using ClinicaApp.ViewModels;
+﻿using ClinicaApp.ViewModels;
 
-namespace ClinicaApp.Views;
-
-public partial class LoginPage : ContentPage
+namespace ClinicaApp.Views
 {
-    public LoginPage(LoginViewModel viewModel)
+    public partial class LoginPage : ContentPage
     {
-        InitializeComponent();
-        BindingContext = viewModel;
+        public LoginPage(LoginViewModel viewModel)
+        {
+            InitializeComponent();
+            BindingContext = viewModel;
+        }
     }
 }

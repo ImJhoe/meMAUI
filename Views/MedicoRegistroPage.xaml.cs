@@ -1,12 +1,14 @@
 using ClinicaApp.ViewModels;
 
-namespace ClinicaApp.Views;
-
-public partial class MedicoRegistroPage : ContentPage
+namespace ClinicaApp.Views
 {
-    public MedicoRegistroPage(MedicoRegistroViewModel viewModel)
+    public partial class MedicoRegistroPage : ContentPage
     {
-        InitializeComponent();
-        BindingContext = viewModel;
+        public MedicoRegistroPage(MedicoRegistroViewModel viewModel)
+        {
+            InitializeComponent();
+            BindingContext = viewModel;
+            System.Diagnostics.Debug.WriteLine("[MEDICO REG PAGE] Página inicializada");
+        }
     }
 }

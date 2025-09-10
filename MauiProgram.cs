@@ -3,6 +3,7 @@ using ClinicaApp.ViewModels;
 using ClinicaApp.Views;
 using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+
 namespace ClinicaApp;
 
 public static class MauiProgram
@@ -18,20 +19,32 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
-        // Configurar HttpClient con tu URL
+        // HttpClient
         builder.Services.AddHttpClient<ApiService>(client =>
         {
             client.BaseAddress = new Uri("http://192.168.1.8:8081/webservice-slim/");
-            client.Timeout = TimeSpan.FromSeconds(30);
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.ConnectionClose = false;
+        })
+        .ConfigurePrimaryHttpMessageHandler(() =>
+        {
+            var handler = new HttpClientHandler();
+#if DEBUG
+            handler.ServerCertificateCustomValidationCallback =
+                (message, cert, chain, errors) => true;
+#endif
+            return handler;
         });
 
-        // Registrar ViewModels
-        builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<MedicoRegistroViewModel>();
-        builder.Services.AddTransient<CitaViewModel>();
+        // ✅ REGISTRAR VIEWMODELS COMO SINGLETON (para XAML binding)
+        builder.Services.AddSingleton<LoginViewModel>();
+        builder.Services.AddSingleton<AdminMenuViewModel>();
+        builder.Services.AddSingleton<MedicoRegistroViewModel>();
 
-        // Registrar Pages
+
+        // ✅ REGISTRAR PAGES COMO TRANSIENT
         builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<AdminMenuPage>();
         builder.Services.AddTransient<MedicoRegistroPage>();
         builder.Services.AddTransient<CitaCreacionPage>();
 

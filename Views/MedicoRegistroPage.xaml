@@ -2,74 +2,248 @@
 <ContentPage x:Class="ClinicaApp.Views.MedicoRegistroPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:ClinicaApp.ViewModels"
-             Title="{Binding Title}"
-             x:DataType="vm:MedicoRegistroViewModel">
-
+             Title="{Binding Title}">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <StackLayout Padding="20" Spacing="15">
 
-            <Label Text="Registro de Médico" 
-                   FontSize="24" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center"/>
+            <!-- HEADER -->
+            <Frame BackgroundColor="#1976D2" Padding="15" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="PUNTO 1: REGISTRO DE MÉDICOS" 
+                           FontSize="20" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           HorizontalOptions="Center"/>
+                    <Label Text="Registro completo + asignación de horarios" 
+                           FontSize="14" 
+                           TextColor="White" 
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Frame>
 
-            <!-- Loading Indicator -->
-            <ActivityIndicator IsVisible="{Binding IsLoading}"
-                              IsRunning="{Binding IsLoading}"
-                              Color="{StaticResource Primary}"/>
+            <!-- DATOS BÁSICOS DEL MÉDICO -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="DATOS BÁSICOS" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#333"/>
 
-            <Entry Placeholder="Nombres *"
-                   Text="{Binding Nombres}"/>
+                    <Entry Text="{Binding Cedula}"
+                           Placeholder="Cédula (ej: 1755973342)"
+                           Keyboard="Numeric"/>
 
-            <Entry Placeholder="Apellidos *"
-                   Text="{Binding Apellidos}"/>
+                    <Entry Text="{Binding Nombres}"
+                           Placeholder="Nombres (ej: Enrique Sebastián)"/>
 
-            <Entry Placeholder="Cédula *"
-                   Text="{Binding Cedula}"
-                   Keyboard="Numeric"/>
+                    <Entry Text="{Binding Apellidos}"
+                           Placeholder="Apellidos (ej: Jiménez Aguilar)"/>
 
-            <Entry Placeholder="Correo electrónico *"
-                   Text="{Binding Correo}"
-                   Keyboard="Email"/>
+                    <Entry Text="{Binding Correo}"
+                           Placeholder="Correo (ej: e.jimenez@clinica.ec)"
+                           Keyboard="Email"/>
 
-            <Entry Placeholder="Contraseña *"
-                   Text="{Binding Contrasena}"
-                   IsPassword="True"/>
+                    <Entry Text="{Binding TituloProfesional}"
+                           Placeholder="Título (ej: MSc. Cardiólogo)"/>
 
-            <Entry Placeholder="Título Profesional (Dr., MSc.)"
-                   Text="{Binding TituloProfesional}"/>
+                    <Label Text="Sexo:" FontAttributes="Bold"/>
+                    <Picker SelectedItem="{Binding SexoSeleccionado}">
+                        <Picker.Items>
+                            <x:String>M</x:String>
+                            <x:String>F</x:String>
+                        </Picker.Items>
+                    </Picker>
 
-            <Entry Placeholder="Número de Colegio"
-                   Text="{Binding NumeroColegio}"/>
+                    <Label Text="Especialidad:" FontAttributes="Bold"/>
+                    <Picker ItemsSource="{Binding Especialidades}"
+                            ItemDisplayBinding="{Binding NombreEspecialidad}"
+                            SelectedItem="{Binding EspecialidadSeleccionada}"
+                            Title="Seleccione especialidad"/>
+                </StackLayout>
+            </Frame>
 
-            <Picker Title="Seleccione Especialidad *"
-                    ItemsSource="{Binding Especialidades}"
-                    ItemDisplayBinding="{Binding Nombre}"
-                    SelectedItem="{Binding EspecialidadSeleccionada}"/>
+            <!-- SELECCIÓN DE SUCURSALES - CORREGIDO -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="SUCURSALES ASIGNADAS" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#333"/>
 
-            <Picker Title="Seleccione Sucursal *"
-                    ItemsSource="{Binding Sucursales}"
-                    ItemDisplayBinding="{Binding Nombre}"
-                    SelectedItem="{Binding SucursalSeleccionada}"/>
+                    <Label Text="Sucursales disponibles:" FontAttributes="Bold"/>
+                    <CollectionView ItemsSource="{Binding Sucursales}" HeightRequest="150">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-            <!-- Error Message -->
-            <Label Text="{Binding ErrorMessage}"
-                   TextColor="Red"
-                   IsVisible="{Binding HasError}"
-                   HorizontalOptions="Center"/>
+                                    <StackLayout Grid.Column="0">
+                                        <Label Text="{Binding NombreSucursal}" 
+                                               FontAttributes="Bold" 
+                                               FontSize="14"/>
+                                        <Label Text="{Binding Direccion}" 
+                                               FontSize="12" 
+                                               TextColor="#666"/>
+                                    </StackLayout>
 
-            <!-- Buttons -->
-            <Button Text="Guardar Médico"
-                    Command="{Binding GuardarMedicoCommand}"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"/>
+                                    <!-- FIX 1: Corregir binding del comando -->
+                                    <Button Grid.Column="1"
+                                            Text="+"
+                                            BackgroundColor="Green"
+                                            TextColor="White"
+                                            WidthRequest="40"
+                                            HeightRequest="40"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AgregarSucursalCommand}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
 
-            <Button Text="Limpiar Formulario"
-                    Command="{Binding LimpiarFormularioCommand}"
-                    BackgroundColor="{StaticResource Secondary}"
-                    TextColor="White"/>
+                    <Label Text="Sucursales seleccionadas:" FontAttributes="Bold" TextColor="Green"/>
+                    <CollectionView ItemsSource="{Binding SucursalesSeleccionadas}" HeightRequest="100">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
 
-        </VerticalStackLayout>
+                                    <Label Grid.Column="0" 
+                                           Text="{Binding NombreSucursal}" 
+                                           FontAttributes="Bold" 
+                                           TextColor="Green"/>
+
+                                    <!-- FIX 2: Corregir comando para quitar sucursal -->
+                                    <Button Grid.Column="1"
+                                            Text="-"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            WidthRequest="40"
+                                            HeightRequest="40"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.QuitarSucursalCommand}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- ASIGNACIÓN DE HORARIOS - CORREGIDO -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="ASIGNACIÓN DE HORARIOS" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#333"/>
+
+                    <Label Text="Nuevo horario:" FontAttributes="Bold"/>
+
+                    <!-- FIX 3: Corregir Picker de días - mostrar texto pero enviar número -->
+                    <Label Text="Día de la semana:"/>
+                    <Picker SelectedItem="{Binding DiaSeleccionadoTexto}" 
+                            ItemsSource="{Binding DiasDisponibles}"
+                            Title="Seleccione día"/>
+
+                    <!-- FIX 4: Corregir picker de sucursales para horarios -->
+                    <Label Text="Sucursal para este horario:"/>
+                    <Picker ItemsSource="{Binding SucursalesSeleccionadas}"
+                            ItemDisplayBinding="{Binding NombreSucursal}"
+                            SelectedItem="{Binding SucursalHorario}"
+                            Title="Seleccione sucursal"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackLayout Grid.Column="0" Padding="0,0,5,0">
+                            <Label Text="Hora inicio:"/>
+                            <TimePicker Time="{Binding HoraInicio}" Format="HH:mm"/>
+                        </StackLayout>
+
+                        <StackLayout Grid.Column="1" Padding="5,0,0,0">
+                            <Label Text="Hora fin:"/>
+                            <TimePicker Time="{Binding HoraFin}" Format="HH:mm"/>
+                        </StackLayout>
+                    </Grid>
+
+                    <StackLayout Orientation="Horizontal">
+                        <Label Text="Duración cita (min):" VerticalOptions="Center"/>
+                        <Entry Text="{Binding DuracionCita}" 
+                               Keyboard="Numeric" 
+                               WidthRequest="80" 
+                               HorizontalOptions="End"/>
+                    </StackLayout>
+
+                    <Button Text="Agregar Horario"
+                            BackgroundColor="Orange"
+                            TextColor="White"
+                            Command="{Binding AgregarHorarioCommand}"/>
+
+                    <Label Text="Horarios asignados:" FontAttributes="Bold" TextColor="Orange"/>
+                    <CollectionView ItemsSource="{Binding HorariosAsignados}" HeightRequest="150">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="5">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Label Grid.Column="0" 
+                                           Text="{Binding HorarioTexto}" 
+                                           FontSize="14"/>
+
+                                    <!-- FIX 5: Corregir comando para quitar horario -->
+                                    <Button Grid.Column="1"
+                                            Text="X"
+                                            BackgroundColor="Red"
+                                            TextColor="White"
+                                            WidthRequest="40"
+                                            HeightRequest="40"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.QuitarHorarioCommand}"
+                                            CommandParameter="{Binding}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <StackLayout Spacing="10">
+                <Button Text="GUARDAR MÉDICO"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        Command="{Binding GuardarMedicoCommand}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                <Button Text="Volver al Menú"
+                        BackgroundColor="#757575"
+                        TextColor="White"
+                        Command="{Binding VolverAlMenuCommand}"/>
+
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsVisible="{Binding IsLoading}"
+                                   IsRunning="{Binding IsLoading}"
+                                   Color="{StaticResource Primary}"/>
+
+                <!-- Error Label -->
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="Red"
+                       HorizontalOptions="Center"
+                       IsVisible="{Binding HasError}"/>
+            </StackLayout>
+
+        </StackLayout>
     </ScrollView>
 </ContentPage>

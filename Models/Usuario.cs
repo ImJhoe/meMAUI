@@ -1,3 +1,4 @@
+// Models/Usuario.cs
 using System.Text.Json.Serialization;
 
 namespace ClinicaApp.Models
@@ -6,6 +7,7 @@ namespace ClinicaApp.Models
     {
         [JsonPropertyName("id")]
         public int IdUsuario { get; set; }
+
         [JsonPropertyName("username")]
         public string Username { get; set; } = string.Empty;
 
@@ -18,16 +20,13 @@ namespace ClinicaApp.Models
         [JsonPropertyName("rol")]
         public string NombreRol { get; set; } = string.Empty;
 
-        [JsonPropertyName("rol_id")]
-        public int RolId { get; set; }
-
         [JsonPropertyName("correo")]
         public string Correo { get; set; } = string.Empty;
-        // Propiedades calculadas
-        public string NombreCompleto => $"{Nombres} {Apellidos}";
-        public bool IsAdmin => NombreRol?.ToLower() == "administrador";
-        public bool IsRecepcionista => NombreRol?.ToLower() == "recepcionista";
-        public bool IsMedico => NombreRol?.ToLower() == "medico";
-        public bool IsPaciente => NombreRol?.ToLower() == "paciente";
+
+        [JsonPropertyName("rol_id")]
+        public int IdRol { get; set; }
+
+        // Propiedad computada para nombre completo
+        public string NombreCompleto => $"{Nombres} {Apellidos}".Trim();
     }
 }

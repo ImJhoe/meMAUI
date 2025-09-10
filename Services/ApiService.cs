@@ -1,5 +1,6 @@
 ﻿using ClinicaApp.Models;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -9,139 +10,41 @@ namespace ClinicaApp.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<ApiService>? _logger;
-        private readonly string _baseUrl = "http://192.168.1.8/webservice-slim/"; // Tu IP
         private readonly JsonSerializerOptions _jsonOptions;
 
-        // Constructor para testing (sin logger)
-        public ApiService()
+        // Constructor del ApiService
+        public ApiService(HttpClient httpClient, ILogger<ApiService>? logger = null)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(_baseUrl);
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
+            _httpClient = httpClient;
+            _logger = logger;
+
+            // ✅ CONFIGURACIÓN CORRECTA para tu API PHP
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower, // Importante para PHP
+                WriteIndented = true
             };
         }
 
-        // Constructor principal con DI
-        public ApiService(HttpClient httpClient, ILogger<ApiService>? logger = null)
-        {
-            _httpClient = httpClient ?? new HttpClient();
-            _logger = logger;
-
-            if (_httpClient.BaseAddress == null)
-            {
-                _httpClient.BaseAddress = new Uri(_baseUrl);
-            }
-
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
-            _jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-        }
-
-        // Método genérico GET mejorado con logging detallado
-        public async Task<ApiResponse<T>> GetAsync<T>(string endpoint)
-        {
-            try
-            {
-                var fullUrl = $"{_baseUrl}/{endpoint.TrimStart('/')}";
-
-                // Log detallado para debugging
-                System.Diagnostics.Debug.WriteLine($"[GET REQUEST] URL: {fullUrl}");
-                _logger?.LogInformation("GET Request: {Endpoint}", endpoint);
-
-                var response = await _httpClient.GetAsync(endpoint);
-                var content = await response.Content.ReadAsStringAsync();
-
-                // Log detallado de respuesta
-                System.Diagnostics.Debug.WriteLine($"[GET RESPONSE] Status: {response.StatusCode}");
-                System.Diagnostics.Debug.WriteLine($"[GET RESPONSE] Content: {content}");
-                _logger?.LogInformation("Response: {StatusCode} - {Content}", response.StatusCode, content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = JsonSerializer.Deserialize<ApiResponse<T>>(content, _jsonOptions);
-                    return result ?? new ApiResponse<T> { Success = false, Message = "Response was null" };
-                }
-
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"HTTP Error: {response.StatusCode} - {content}",
-                    StatusCode = (int)response.StatusCode
-                };
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[GET ERROR] {ex.Message}");
-                _logger?.LogError(ex, "Error in GET request to {Endpoint}", endpoint);
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"Connection error: {ex.Message}"
-                };
-            }
-        }
-
-        // Método genérico POST mejorado con logging detallado
-        public async Task<ApiResponse<T>> PostAsync<T>(string endpoint, object data)
-        {
-            try
-            {
-                var json = JsonSerializer.Serialize(data, _jsonOptions);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var fullUrl = $"{_baseUrl}/{endpoint.TrimStart('/')}";
-
-                // Log detallado para debugging
-                System.Diagnostics.Debug.WriteLine($"[POST REQUEST] URL: {fullUrl}");
-                System.Diagnostics.Debug.WriteLine($"[POST REQUEST] Data: {json}");
-                _logger?.LogInformation("POST Request: {Endpoint} - Data: {Data}", endpoint, json);
-
-                var response = await _httpClient.PostAsync(endpoint, content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                // Log detallado de respuesta
-                System.Diagnostics.Debug.WriteLine($"[POST RESPONSE] Status: {response.StatusCode}");
-                System.Diagnostics.Debug.WriteLine($"[POST RESPONSE] Content: {responseContent}");
-                _logger?.LogInformation("Response: {StatusCode} - {Content}", response.StatusCode, responseContent);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = JsonSerializer.Deserialize<ApiResponse<T>>(responseContent, _jsonOptions);
-                    return result ?? new ApiResponse<T> { Success = false, Message = "Response was null" };
-                }
-
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"HTTP Error: {response.StatusCode} - {responseContent}",
-                    StatusCode = (int)response.StatusCode
-                };
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[POST ERROR] {ex.Message}");
-                _logger?.LogError(ex, "Error in POST request to {Endpoint}", endpoint);
-                return new ApiResponse<T>
-                {
-                    Success = false,
-                    Message = $"Connection error: {ex.Message}"
-                };
-            }
-        }
-
-        // Test de conectividad mejorado
+        // Test de conexión
         public async Task<(bool Success, string Message)> TestConnectionAsync()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[TEST] Probando conexión a: {_baseUrl}");
+                // Verificar conectividad de red
+                var networkAccess = Connectivity.Current.NetworkAccess;
+                System.Diagnostics.Debug.WriteLine($"[NETWORK] Estado: {networkAccess}");
 
-                var response = await _httpClient.GetAsync("/");
+                if (networkAccess != NetworkAccess.Internet)
+                {
+                    return (false, "Sin conexión a internet");
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[TEST] Probando conexión...");
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var response = await _httpClient.GetAsync("", cts.Token);
                 var content = await response.Content.ReadAsStringAsync();
 
                 System.Diagnostics.Debug.WriteLine($"[TEST] Status: {response.StatusCode}");
@@ -153,19 +56,31 @@ namespace ClinicaApp.Services
                 }
                 else
                 {
-                    return (false, $"Error HTTP: {response.StatusCode}");
+                    return (false, $"HTTP {response.StatusCode}: {response.ReasonPhrase}");
                 }
             }
             catch (HttpRequestException httpEx)
             {
-                System.Diagnostics.Debug.WriteLine($"[TEST ERROR HTTP] {httpEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"[TEST HTTP ERROR] {httpEx.Message}");
 
-                if (httpEx.Message.Contains("Cleartext HTTP traffic"))
+                if (httpEx.Message.Contains("Cleartext HTTP"))
                 {
-                    return (false, "Android bloquea HTTP. Configura Network Security Config.");
+                    return (false, "Android bloquea HTTP. Verifica network_security_config.xml");
+                }
+                if (httpEx.Message.Contains("No address associated"))
+                {
+                    return (false, "No se puede resolver la dirección IP. Verifica la red WiFi");
+                }
+                if (httpEx.Message.Contains("Connection refused"))
+                {
+                    return (false, "Conexión rechazada. Verifica que el servidor esté ejecutándose");
                 }
 
                 return (false, $"Error HTTP: {httpEx.Message}");
+            }
+            catch (TaskCanceledException)
+            {
+                return (false, "Timeout - El servidor no responde en 10 segundos");
             }
             catch (Exception ex)
             {
@@ -174,47 +89,63 @@ namespace ClinicaApp.Services
             }
         }
 
-        // MÉTODOS ESPECÍFICOS DEL NEGOCIO
-
-        // Login con logging detallado
+        // En ApiService.cs, reemplaza el método LoginAsync
+        // En ApiService.cs, reemplaza el método LoginAsync
         public async Task<ApiResponse<Usuario>> LoginAsync(string username, string password)
         {
             try
             {
-                // Probar conexión primero
-                var (connectionSuccess, connectionMessage) = await TestConnectionAsync();
-                if (!connectionSuccess)
-                {
-                    return new ApiResponse<Usuario>
-                    {
-                        Success = false,
-                        Message = $"No hay conexión: {connectionMessage}"
-                    };
-                }
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] Iniciando login para: {username}");
 
-                // Enviar username y password (no correo)
+                // Preparar datos
                 var loginData = new { username, password };
-                var json = JsonSerializer.Serialize(loginData);
+                var json = JsonSerializer.Serialize(loginData, _jsonOptions);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 System.Diagnostics.Debug.WriteLine($"[LOGIN] Datos enviados: {json}");
 
+                // Hacer petición
                 var response = await _httpClient.PostAsync("auth/login", content);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                System.Diagnostics.Debug.WriteLine($"[LOGIN] Respuesta: {response.StatusCode} - {responseContent}");
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] Status: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] Response: {responseContent}");
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var result = JsonSerializer.Deserialize<ApiResponse<Usuario>>(responseContent, _jsonOptions);
-                    return result ?? new ApiResponse<Usuario> { Success = false, Message = "Respuesta vacía" };
-                }
+                    // ⭐ CAMBIO IMPORTANTE: Deserializar como LoginData primero
+                    var loginResponse = JsonSerializer.Deserialize<ApiResponse<LoginData>>(responseContent, _jsonOptions);
 
-                return new ApiResponse<Usuario>
+                    if (loginResponse?.Success == true && loginResponse.Data?.User != null)
+                    {
+                        var usuario = loginResponse.Data.User;
+                        System.Diagnostics.Debug.WriteLine($"[LOGIN] Login exitoso para: {usuario.NombreCompleto} - Rol: {usuario.NombreRol}");
+
+                        // Devolver el usuario dentro de ApiResponse<Usuario>
+                        return new ApiResponse<Usuario>
+                        {
+                            Success = true,
+                            Message = loginResponse.Message,
+                            Data = usuario
+                        };
+                    }
+                    else
+                    {
+                        return new ApiResponse<Usuario>
+                        {
+                            Success = false,
+                            Message = loginResponse?.Message ?? "Error desconocido en login"
+                        };
+                    }
+                }
+                else
                 {
-                    Success = false,
-                    Message = $"Error {response.StatusCode}: {responseContent}"
-                };
+                    return new ApiResponse<Usuario>
+                    {
+                        Success = false,
+                        Message = $"Error HTTP {response.StatusCode}: {responseContent}"
+                    };
+                }
             }
             catch (Exception ex)
             {
@@ -222,35 +153,230 @@ namespace ClinicaApp.Services
                 return new ApiResponse<Usuario>
                 {
                     Success = false,
+                    Message = $"Error inesperado: {ex.Message}"
+                };
+            }
+        }
+
+        // Métodos genéricos GET y POST
+        public async Task<ApiResponse<T>> GetAsync<T>(string endpoint)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET] {endpoint}");
+
+                var response = await _httpClient.GetAsync(endpoint);
+                var content = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[GET] Status: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonSerializer.Deserialize<ApiResponse<T>>(content, _jsonOptions);
+                    return result ?? new ApiResponse<T> { Success = false, Message = "Response was null" };
+                }
+
+                return new ApiResponse<T>
+                {
+                    Success = false,
+                    Message = $"HTTP Error: {response.StatusCode}",
+                    StatusCode = (int)response.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET ERROR] {ex.Message}");
+                return new ApiResponse<T>
+                {
+                    Success = false,
+                    Message = $"Connection error: {ex.Message}"
+                };
+            }
+        }
+
+        // ACTUALIZAR TU MÉTODO PostAsync EN ApiService.cs PARA VER EL ERROR ESPECÍFICO
+
+        public async Task<ApiResponse<T>> PostAsync<T>(string endpoint, object data)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                System.Diagnostics.Debug.WriteLine($"[POST] {endpoint} - Data: {json}");
+
+                var response = await _httpClient.PostAsync(endpoint, content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[POST] Status: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"[POST] Response: {responseContent}"); // ✅ IMPORTANTE: Ver el error del servidor
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonSerializer.Deserialize<ApiResponse<T>>(responseContent, _jsonOptions);
+                    return result ?? new ApiResponse<T> { Success = false, Message = "Response was null" };
+                }
+                else
+                {
+                    // ✅ MOSTRAR EL ERROR ESPECÍFICO DEL SERVIDOR
+                    return new ApiResponse<T>
+                    {
+                        Success = false,
+                        Message = $"HTTP {response.StatusCode}: {responseContent}",
+                        StatusCode = (int)response.StatusCode
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[POST ERROR] {ex.Message}");
+                return new ApiResponse<T>
+                {
+                    Success = false,
+                    Message = $"Connection error: {ex.Message}"
+                };
+            }
+        }
+
+        // Métodos específicos del negocio
+        // Métodos para especialidades
+        public async Task<ApiResponse<List<Especialidad>>> ObtenerEspecialidadesAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[API] Obteniendo especialidades");
+                return await GetAsync<List<Especialidad>>("api/especialidades");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Especialidades: {ex.Message}");
+                return new ApiResponse<List<Especialidad>>
+                {
+                    Success = false,
+                    Message = $"Error obteniendo especialidades: {ex.Message}"
+                };
+            }
+        }
+
+        // Métodos para sucursales
+        public async Task<ApiResponse<List<Sucursal>>> ObtenerSucursalesAsync()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[API] Obteniendo sucursales");
+                return await GetAsync<List<Sucursal>>("api/sucursales");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Sucursales: {ex.Message}");
+                return new ApiResponse<List<Sucursal>>
+                {
+                    Success = false,
+                    Message = $"Error obteniendo sucursales: {ex.Message}"
+                };
+            }
+        }
+
+        // Métodos para médicos
+        public async Task<ApiResponse<Medico>> CrearMedicoAsync(Medico medico)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[API] Creando médico: {medico.NombreCompleto}");
+                System.Diagnostics.Debug.WriteLine($"[API] Especialidad: {medico.IdEspecialidad}");
+                System.Diagnostics.Debug.WriteLine($"[API] Cédula: {medico.Cedula}");
+
+                // ✅ CORREGIR: Enviar solo los campos que necesita la API
+                var datosParaAPI = new
+                {
+                    nombres = medico.Nombres,
+                    apellidos = medico.Apellidos,
+                    cedula = medico.Cedula,
+                    correo = medico.Correo,
+                    contrasena = medico.Contrasena,
+                    sexo = medico.Sexo,
+                    nacionalidad = medico.Nacionalidad,
+                    titulo_profesional = medico.TituloProfesional, // Usar snake_case
+                    numero_colegio = medico.NumeroColegio,          // Usar snake_case
+                    id_especialidad = medico.IdEspecialidad,
+                    id_sucursal = medico.IdSucursal
+                };
+
+                var json = JsonSerializer.Serialize(datosParaAPI, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                System.Diagnostics.Debug.WriteLine($"[API] JSON enviado: {json}");
+
+                var response = await _httpClient.PostAsync("api/medicos", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[API] Status: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"[API] Response: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = JsonSerializer.Deserialize<ApiResponse<Medico>>(responseContent, _jsonOptions);
+                    return result ?? new ApiResponse<Medico> { Success = false, Message = "Respuesta vacía" };
+                }
+                else
+                {
+                    // ✅ AGREGAR: Mostrar el error específico del servidor
+                    return new ApiResponse<Medico>
+                    {
+                        Success = false,
+                        Message = $"Error {response.StatusCode}: {responseContent}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Crear médico: {ex}");
+                return new ApiResponse<Medico>
+                {
+                    Success = false,
                     Message = $"Error de conexión: {ex.Message}"
                 };
             }
         }
 
-        // Especialidades
-        public async Task<ApiResponse<List<Especialidad>>> ObtenerEspecialidadesAsync()
-        {
-            return await GetAsync<List<Especialidad>>("api/especialidades");
-        }
-
-        // Sucursales
-        public async Task<ApiResponse<List<Sucursal>>> ObtenerSucursalesAsync()
-        {
-            return await GetAsync<List<Sucursal>>("api/sucursales");
-        }
-
-        // Médicos
-        public async Task<ApiResponse<Medico>> CrearMedicoAsync(Medico medico)
-        {
-            return await PostAsync<Medico>("api/medicos", medico);
-        }
-
         public async Task<ApiResponse<List<Medico>>> ObtenerMedicosAsync()
         {
-            return await GetAsync<List<Medico>>("api/medicos");
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[API] Obteniendo médicos");
+                return await GetAsync<List<Medico>>("api/medicos");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Obtener médicos: {ex.Message}");
+                return new ApiResponse<List<Medico>>
+                {
+                    Success = false,
+                    Message = $"Error obteniendo médicos: {ex.Message}"
+                };
+            }
+        }
+        // Métodos para horarios - USAR TU MODELO HORARIO
+        public async Task<ApiResponse<bool>> AsignarHorariosAsync(int idMedico, List<Horario> horarios)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[API] Asignando {horarios.Count} horarios al médico {idMedico}");
+
+                var data = new { id_medico = idMedico, horarios };
+                return await PostAsync<bool>("api/horarios", data);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Asignar horarios: {ex.Message}");
+                return new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Error asignando horarios: {ex.Message}"
+                };
+            }
         }
 
-        // Pacientes
         public async Task<ApiResponse<Paciente>> BuscarPacientePorCedulaAsync(string cedula)
         {
             return await GetAsync<Paciente>($"api/pacientes/{cedula}");
@@ -261,23 +387,15 @@ namespace ClinicaApp.Services
             return await PostAsync<Paciente>("api/pacientes", paciente);
         }
 
-        // Horarios
         public async Task<ApiResponse<List<Horario>>> ObtenerHorariosDisponiblesAsync(int medicoId, DateTime fecha)
         {
             var fechaStr = fecha.ToString("yyyy-MM-dd");
             return await GetAsync<List<Horario>>($"api/horarios/medico/{medicoId}/disponibles?fecha={fechaStr}");
         }
 
-        // Citas
         public async Task<ApiResponse<Cita>> CrearCitaAsync(Cita cita)
         {
             return await PostAsync<Cita>("api/citas", cita);
-        }
-
-        // Método para limpiar recursos
-        public void Dispose()
-        {
-            _httpClient?.Dispose();
         }
     }
 }

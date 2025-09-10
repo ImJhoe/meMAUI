@@ -1,18 +1,19 @@
+using System.Text.Json.Serialization;
+
 namespace ClinicaApp.Models
 {
     public class Sucursal
     {
+        [JsonPropertyName("id_sucursal")]
         public int IdSucursal { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Direccion { get; set; } = string.Empty;
-        public string Telefono { get; set; } = string.Empty;
-        public string Ciudad { get; set; } = string.Empty;
-        public bool Activa { get; set; } = true;
-        public DateTime FechaCreacion { get; set; }
 
-        public override string ToString()
-        {
-            return Nombre;
-        }
+        [JsonPropertyName("nombre_sucursal")]
+        public string NombreSucursal { get; set; } = string.Empty;
+
+        [JsonPropertyName("direccion")]
+        public string Direccion { get; set; } = string.Empty;
+
+        [JsonPropertyName("telefono")]
+        public string Telefono { get; set; } = string.Empty;
     }
 }

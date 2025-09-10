@@ -1,4 +1,4 @@
-using ClinicaApp.Models;
+﻿using ClinicaApp.Models;
 using ClinicaApp.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,16 +10,46 @@ namespace ClinicaApp.ViewModels
     {
         private readonly ApiService _apiService;
 
+        // Constructor sin parámetros para XAML
+        public MedicoRegistroViewModel()
+        {
+            var httpClient = new HttpClient();
+            httpClient.BaseAddress = new Uri("http://192.168.1.8:8081/webservice-slim/");
+            _apiService = new ApiService(httpClient);
+            InitializeViewModel();
+        }
+
+        // Constructor con DI
         public MedicoRegistroViewModel(ApiService apiService)
         {
             _apiService = apiService;
-            Title = "Registro de M�dico";
+            InitializeViewModel();
+        }
+
+        private void InitializeViewModel()
+        {
+            Title = "Registro de Médicos - Punto 1";
+            System.Diagnostics.Debug.WriteLine("[MEDICO REG] ViewModel inicializado");
+
+            // Inicializar colecciones
             Especialidades = new ObservableCollection<Especialidad>();
             Sucursales = new ObservableCollection<Sucursal>();
+            SucursalesSeleccionadas = new ObservableCollection<Sucursal>();
+            HorariosAsignados = new ObservableCollection<Horario>();
 
-            // Cargar datos iniciales
-            _ = LoadDataAsync();
+            // ✅ AGREGAR: Inicializar días de la semana
+            DiasDisponibles = new ObservableCollection<string>
+    {
+        "Lunes", "Martes", "Miércoles", "Jueves", "Viernes"
+        // Solo lunes a viernes como solicitaste
+    };
+
+            CargarDatosIniciales();
         }
+
+        // Propiedades del médico
+        [ObservableProperty]
+        private string cedula = string.Empty;
 
         [ObservableProperty]
         private string nombres = string.Empty;
@@ -28,60 +58,91 @@ namespace ClinicaApp.ViewModels
         private string apellidos = string.Empty;
 
         [ObservableProperty]
-        private string cedula = string.Empty;
-
-        [ObservableProperty]
         private string correo = string.Empty;
-
-        [ObservableProperty]
-        private string contrasena = string.Empty;
 
         [ObservableProperty]
         private string tituloProfesional = string.Empty;
 
+        // ✅ CORREGIR: Agregar propiedades que faltaban
         [ObservableProperty]
-        private string numeroColegio = string.Empty;
+        private string sexoSeleccionado = "M";
+
+        [ObservableProperty]
+        private string contrasena = "123456";
 
         [ObservableProperty]
         private Especialidad? especialidadSeleccionada;
 
+        // ✅ CORREGIR: Colecciones como propiedades, no get-only
+        public ObservableCollection<string> DiasDisponibles { get; private set; }
+        public ObservableCollection<Especialidad> Especialidades { get; private set; }
+        public ObservableCollection<Sucursal> Sucursales { get; private set; }
+        public ObservableCollection<Sucursal> SucursalesSeleccionadas { get; private set; }
+        public ObservableCollection<Horario> HorariosAsignados { get; private set; }
+
+        // Propiedades para horarios
         [ObservableProperty]
-        private Sucursal? sucursalSeleccionada;
+        private string diaSeleccionadoTexto = "Lunes";
 
-        public ObservableCollection<Especialidad> Especialidades { get; }
-        public ObservableCollection<Sucursal> Sucursales { get; }
+        [ObservableProperty]
+        private TimeSpan horaInicio = new TimeSpan(8, 0, 0);
 
-        private async Task LoadDataAsync()
+        [ObservableProperty]
+        private TimeSpan horaFin = new TimeSpan(17, 0, 0);
+
+        [ObservableProperty]
+        private int duracionCita = 30;
+
+        [ObservableProperty]
+        private Sucursal? sucursalHorario;
+
+        private async void CargarDatosIniciales()
         {
             try
             {
                 ShowLoading(true);
+                System.Diagnostics.Debug.WriteLine("[MEDICO REG] Cargando datos iniciales...");
 
                 // Cargar especialidades
                 var especialidadesResponse = await _apiService.ObtenerEspecialidadesAsync();
                 if (especialidadesResponse.Success && especialidadesResponse.Data != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Cargadas {especialidadesResponse.Data.Count} especialidades");
                     Especialidades.Clear();
-                    foreach (var especialidad in especialidadesResponse.Data)
+                    foreach (var esp in especialidadesResponse.Data)
                     {
-                        Especialidades.Add(especialidad);
+                        Especialidades.Add(esp);
+                        System.Diagnostics.Debug.WriteLine($"  - {esp.NombreEspecialidad}");
                     }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Error cargando especialidades: {especialidadesResponse.Message}");
+                    ShowError("Error cargando especialidades");
                 }
 
                 // Cargar sucursales
                 var sucursalesResponse = await _apiService.ObtenerSucursalesAsync();
                 if (sucursalesResponse.Success && sucursalesResponse.Data != null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Cargadas {sucursalesResponse.Data.Count} sucursales");
                     Sucursales.Clear();
-                    foreach (var sucursal in sucursalesResponse.Data)
+                    foreach (var suc in sucursalesResponse.Data)
                     {
-                        Sucursales.Add(sucursal);
+                        Sucursales.Add(suc);
+                        System.Diagnostics.Debug.WriteLine($"  - {suc.NombreSucursal}");
                     }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Error cargando sucursales: {sucursalesResponse.Message}");
+                    ShowError("Error cargando sucursales");
                 }
             }
             catch (Exception ex)
             {
-                ShowError($"Error al cargar datos: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Exception cargando datos: {ex.Message}");
+                ShowError($"Error cargando datos: {ex.Message}");
             }
             finally
             {
@@ -90,44 +151,195 @@ namespace ClinicaApp.ViewModels
         }
 
         [RelayCommand]
-        private async Task GuardarMedicoAsync()
+        private void AgregarSucursal(Sucursal sucursal)
         {
-            if (!ValidarFormulario())
-                return;
+            if (sucursal != null && !SucursalesSeleccionadas.Contains(sucursal))
+            {
+                SucursalesSeleccionadas.Add(sucursal);
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Sucursal agregada: {sucursal.NombreSucursal}");
+            }
+        }
 
+        [RelayCommand]
+        private void QuitarSucursal(Sucursal sucursal)
+        {
+            if (sucursal != null && SucursalesSeleccionadas.Contains(sucursal))
+            {
+                SucursalesSeleccionadas.Remove(sucursal);
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Sucursal removida: {sucursal.NombreSucursal}");
+
+                // Remover horarios de esta sucursal
+                var horariosARemover = HorariosAsignados.Where(h => h.IdSucursal == sucursal.IdSucursal).ToList();
+                foreach (var horario in horariosARemover)
+                {
+                    HorariosAsignados.Remove(horario);
+                }
+            }
+        }
+
+        [RelayCommand]
+        private void AgregarHorario()
+        {
             try
             {
-                ShowLoading(true);
-                ClearError();
-
-                var medico = new Medico
+                if (SucursalHorario == null)
                 {
-                    Nombres = Nombres.Trim(),
-                    Apellidos = Apellidos.Trim(),
-                    Cedula = Cedula.Trim(),
-                    Correo = Correo.Trim(),
-                    Contrasena = Contrasena.Trim(),
-                    IdEspecialidad = EspecialidadSeleccionada!.IdEspecialidad,
-                    TituloProfesional = TituloProfesional.Trim(),
-                    NumeroColegio = NumeroColegio.Trim(),
-                    IdSucursal = SucursalSeleccionada!.IdSucursal
+                    ShowError("Seleccione una sucursal para el horario");
+                    return;
+                }
+
+                if (HoraInicio >= HoraFin)
+                {
+                    ShowError("La hora de inicio debe ser menor que la hora de fin");
+                    return;
+                }
+
+                // ✅ CONVERTIR: Texto del día a número
+                int diaNumero = DiaSeleccionadoTexto switch
+                {
+                    "Lunes" => 1,
+                    "Martes" => 2,
+                    "Miércoles" => 3,
+                    "Jueves" => 4,
+                    "Viernes" => 5,
+                    _ => 1
                 };
 
+                var nuevoHorario = new Horario
+                {
+                    DiaSemana = diaNumero, // Usar el número convertido
+                    HoraInicio = HoraInicio.ToString(@"hh\:mm"),
+                    HoraFin = HoraFin.ToString(@"hh\:mm"),
+                    IntervaloMinutos = DuracionCita,
+                    IdSucursal = SucursalHorario.IdSucursal,
+                    Activo = true
+                };
+
+                // Verificar conflictos
+                var conflicto = HorariosAsignados.FirstOrDefault(h =>
+                    h.DiaSemana == nuevoHorario.DiaSemana &&
+                    h.IdSucursal == nuevoHorario.IdSucursal);
+
+                if (conflicto != null)
+                {
+                    ShowError($"Ya existe un horario para {DiaSeleccionadoTexto} en esta sucursal");
+                    return;
+                }
+
+                HorariosAsignados.Add(nuevoHorario);
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Horario agregado: {nuevoHorario.HorarioTexto}");
+
+                // Limpiar formulario
+                DiaSeleccionadoTexto = "Lunes";
+                HoraInicio = new TimeSpan(8, 0, 0);
+                HoraFin = new TimeSpan(17, 0, 0);
+                SucursalHorario = null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Error agregando horario: {ex.Message}");
+                ShowError($"Error agregando horario: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private void QuitarHorario(Horario horario)
+        {
+            if (horario != null && HorariosAsignados.Contains(horario))
+            {
+                HorariosAsignados.Remove(horario);
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Horario removido: {horario.HorarioTexto}");
+            }
+        }
+
+        [RelayCommand]
+        private async Task GuardarMedico()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[MEDICO REG] Iniciando guardado...");
+
+                // Validaciones
+                if (string.IsNullOrWhiteSpace(Cedula) || string.IsNullOrWhiteSpace(Nombres) ||
+                    string.IsNullOrWhiteSpace(Apellidos) || EspecialidadSeleccionada == null)
+                {
+                    ShowError("Complete todos los campos obligatorios");
+                    return;
+                }
+
+                if (SucursalesSeleccionadas.Count == 0)
+                {
+                    ShowError("Seleccione al menos una sucursal");
+                    return;
+                }
+
+                ShowLoading(true);
+
+                // ✅ CORREGIR: Usar las propiedades correctas
+                var medico = new Medico
+                {
+                    Cedula = Cedula.Trim(),
+                    Nombres = Nombres.Trim(),
+                    Apellidos = Apellidos.Trim(),
+                    Correo = Correo.Trim(),
+                    Contrasena = Contrasena, // ✅ Usar la propiedad correcta
+                    TituloProfesional = TituloProfesional.Trim(),
+                    Sexo = SexoSeleccionado, // En lugar de Sexo = Sexo,
+                    Nacionalidad = "Ecuatoriana",
+                    IdEspecialidad = EspecialidadSeleccionada.IdEspecialidad,
+                    IdSucursal = SucursalesSeleccionadas.First().IdSucursal
+                };
+
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Médico a guardar:");
+                System.Diagnostics.Debug.WriteLine($"  - Nombre: {medico.NombreCompleto}");
+                System.Diagnostics.Debug.WriteLine($"  - Cédula: {medico.Cedula}");
+                System.Diagnostics.Debug.WriteLine($"  - Especialidad: {EspecialidadSeleccionada.NombreEspecialidad}");
+
+                // Guardar médico
                 var response = await _apiService.CrearMedicoAsync(medico);
 
                 if (response.Success)
                 {
-                    await Shell.Current.DisplayAlert("�xito", "M�dico registrado correctamente", "OK");
+                    System.Diagnostics.Debug.WriteLine("[MEDICO REG] Médico guardado exitosamente");
+
+                    // Si hay horarios, asignarlos
+                    if (HorariosAsignados.Count > 0 && response.Data != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Asignando {HorariosAsignados.Count} horarios");
+
+                        // DESPUÉS:
+                        foreach (var horario in HorariosAsignados)
+                        {
+                            horario.IdMedico = response.Data.IdDoctor; // ✅ Usar IdDoctor de la respuesta API
+                        }
+
+                        var horariosResponse = await _apiService.AsignarHorariosAsync(response.Data.IdDoctor, HorariosAsignados.ToList());
+
+                        if (horariosResponse.Success)
+                        {
+                            ShowError("Médico y horarios registrados exitosamente");
+                        }
+                        else
+                        {
+                            ShowError($"Médico creado pero error en horarios: {horariosResponse.Message}");
+                        }
+                    }
+                    else
+                    {
+                        ShowError("Médico registrado exitosamente");
+                    }
+
                     LimpiarFormulario();
                 }
                 else
                 {
-                    ShowError(response.Message ?? "Error al registrar m�dico");
+                    ShowError($"Error: {response.Message}");
                 }
             }
             catch (Exception ex)
             {
-                ShowError($"Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[MEDICO REG] Exception: {ex.Message}");
+                ShowError($"Error inesperado: {ex.Message}");
             }
             finally
             {
@@ -135,66 +347,26 @@ namespace ClinicaApp.ViewModels
             }
         }
 
-        private bool ValidarFormulario()
+        private void LimpiarFormulario()
         {
-            if (string.IsNullOrWhiteSpace(Nombres))
-            {
-                ShowError("El nombre es requerido");
-                return false;
-            }
+            Cedula = string.Empty;
+            Nombres = string.Empty;
+            Apellidos = string.Empty;
+            Correo = string.Empty;
+            TituloProfesional = string.Empty;
+            EspecialidadSeleccionada = null;
+            SucursalesSeleccionadas.Clear();
+            HorariosAsignados.Clear();
 
-            if (string.IsNullOrWhiteSpace(Apellidos))
-            {
-                ShowError("Los apellidos son requeridos");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(Cedula))
-            {
-                ShowError("La c�dula es requerida");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(Correo) || !Correo.Contains("@"))
-            {
-                ShowError("Ingrese un correo v�lido");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(Contrasena) || Contrasena.Length < 6)
-            {
-                ShowError("La contrase�a debe tener al menos 6 caracteres");
-                return false;
-            }
-
-            if (EspecialidadSeleccionada == null)
-            {
-                ShowError("Seleccione una especialidad");
-                return false;
-            }
-
-            if (SucursalSeleccionada == null)
-            {
-                ShowError("Seleccione una sucursal");
-                return false;
-            }
-
-            return true;
+            // ✅ AGREGAR: Limpiar nuevas propiedades
+            DiaSeleccionadoTexto = "Lunes";
+            SucursalHorario = null;
         }
 
         [RelayCommand]
-        private void LimpiarFormulario()
+        private async Task VolverAlMenu()
         {
-            Nombres = string.Empty;
-            Apellidos = string.Empty;
-            Cedula = string.Empty;
-            Correo = string.Empty;
-            Contrasena = string.Empty;
-            TituloProfesional = string.Empty;
-            NumeroColegio = string.Empty;
-            EspecialidadSeleccionada = null;
-            SucursalSeleccionada = null;
-            ClearError();
+            await Shell.Current.GoToAsync("//AdminMenuPage");
         }
     }
 }

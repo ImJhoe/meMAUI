@@ -1,31 +1,50 @@
+using System.Text.Json.Serialization;
+
 namespace ClinicaApp.Models
 {
     public class Paciente
     {
+        [JsonPropertyName("id_paciente")]
         public int IdPaciente { get; set; }
-        public string Nombres { get; set; } = string.Empty;
-        public string Apellidos { get; set; } = string.Empty;
+
+        [JsonPropertyName("id_usuario")]
+        public int IdUsuario { get; set; }
+
+        [JsonPropertyName("cedula")]
         public string Cedula { get; set; } = string.Empty;
+
+        [JsonPropertyName("nombres")]
+        public string Nombres { get; set; } = string.Empty;
+
+        [JsonPropertyName("apellidos")]
+        public string Apellidos { get; set; } = string.Empty;
+
+        [JsonPropertyName("correo")]
         public string Correo { get; set; } = string.Empty;
+
+        [JsonPropertyName("telefono")]
         public string Telefono { get; set; } = string.Empty;
-        public string Direccion { get; set; } = string.Empty;
+
+        [JsonPropertyName("fecha_nacimiento")]
         public DateTime FechaNacimiento { get; set; }
-        public string Genero { get; set; } = string.Empty;
-        public string GrupoSanguineo { get; set; } = string.Empty;
-        public DateTime FechaCreacion { get; set; }
+
+        [JsonPropertyName("sexo")]
+        public string Sexo { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_sangre")]
+        public string TipoSangre { get; set; } = string.Empty;
+
+        [JsonPropertyName("alergias")]
+        public string Alergias { get; set; } = string.Empty;
+
+        [JsonPropertyName("contacto_emergencia")]
+        public string ContactoEmergencia { get; set; } = string.Empty;
+
+        [JsonPropertyName("telefono_emergencia")]
+        public string TelefonoEmergencia { get; set; } = string.Empty;
 
         // Propiedades calculadas
-        public string NombreCompleto => $"{Nombres} {Apellidos}";
-        public int Edad
-        {
-            get
-            {
-                var hoy = DateTime.Today;
-                var edad = hoy.Year - FechaNacimiento.Year;
-                if (FechaNacimiento.Date > hoy.AddYears(-edad)) edad--;
-                return edad;
-            }
-        }
-        public string InfoBasica => $"{NombreCompleto} - {Cedula} ({Edad} años)";
+        public string NombreCompleto => $"{Nombres} {Apellidos}".Trim();
+        public int Edad => DateTime.Now.Year - FechaNacimiento.Year;
     }
 }

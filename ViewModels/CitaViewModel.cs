@@ -1,3 +1,4 @@
+ï»¿// ViewModels/CitaViewModel.cs - CORREGIDO
 using ClinicaApp.Models;
 using ClinicaApp.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -51,7 +52,7 @@ namespace ClinicaApp.ViewModels
         {
             if (string.IsNullOrWhiteSpace(CedulaPaciente))
             {
-                ShowError("Ingrese el número de cédula");
+                ShowError("Ingrese el nÃºmero de cÃ©dula");
                 return;
             }
 
@@ -90,7 +91,7 @@ namespace ClinicaApp.ViewModels
         [RelayCommand]
         private async Task IrARegistroPacienteAsync()
         {
-            // Navegar a la página de registro de paciente
+            // Navegar a la pÃ¡gina de registro de paciente
             var parameters = new Dictionary<string, object>
             {
                 ["Cedula"] = CedulaPaciente
@@ -116,7 +117,7 @@ namespace ClinicaApp.ViewModels
             }
             catch (Exception ex)
             {
-                ShowError($"Error al cargar médicos: {ex.Message}");
+                ShowError($"Error al cargar mÃ©dicos: {ex.Message}");
             }
         }
 
@@ -130,6 +131,7 @@ namespace ClinicaApp.ViewModels
             {
                 ShowLoading(true);
 
+                // Usar IdMedico en lugar de IdDoctor para consistencia
                 var response = await _apiService.ObtenerHorariosDisponiblesAsync(
                     MedicoSeleccionado.IdMedico,
                     FechaSeleccionada);
@@ -169,12 +171,15 @@ namespace ClinicaApp.ViewModels
                 ShowLoading(true);
                 ClearError();
 
+                // âœ… CORREGIDO: Construir FechaHora combinando fecha y hora
+                DateTime fechaHoraCita = ConstruirFechaHora(FechaSeleccionada, HorarioSeleccionado!.HoraInicio);
+
                 var cita = new Cita
                 {
                     IdPaciente = PacienteEncontrado!.IdPaciente,
-                    IdDoctor = MedicoSeleccionado!.IdMedico,
-                    IdSucursal = 1, // Por defecto la primera sucursal
-                    FechaHora = HorarioSeleccionado!.FechaHora ?? DateTime.Now,
+                    IdDoctor = MedicoSeleccionado!.IdMedico, // Usar IdMedico
+                    IdSucursal = HorarioSeleccionado!.IdSucursal, // Usar sucursal del horario
+                    FechaHora = fechaHoraCita, // âœ… CORREGIDO: Usar fecha construida
                     Motivo = MotivoCita.Trim(),
                     TipoCita = "presencial",
                     Estado = "Pendiente"
@@ -184,7 +189,7 @@ namespace ClinicaApp.ViewModels
 
                 if (response.Success)
                 {
-                    await Shell.Current.DisplayAlert("Éxito", "Cita creada correctamente", "OK");
+                    await Shell.Current.DisplayAlert("Ã‰xito", "Cita creada correctamente", "OK");
                     LimpiarFormulario();
                 }
                 else
@@ -202,6 +207,29 @@ namespace ClinicaApp.ViewModels
             }
         }
 
+        // âœ… MÃ‰TODO NUEVO: Construir DateTime desde fecha y hora string
+        private DateTime ConstruirFechaHora(DateTime fecha, string horaString)
+        {
+            try
+            {
+                // Parsear la hora desde string "HH:mm"
+                if (TimeSpan.TryParse(horaString, out TimeSpan hora))
+                {
+                    return fecha.Date.Add(hora);
+                }
+                else
+                {
+                    // Si no se puede parsear, usar hora por defecto
+                    return fecha.Date.AddHours(8); // 8:00 AM por defecto
+                }
+            }
+            catch
+            {
+                // En caso de error, devolver fecha con hora por defecto
+                return fecha.Date.AddHours(8);
+            }
+        }
+
         private bool ValidarCita()
         {
             if (PacienteEncontrado == null)
@@ -212,7 +240,7 @@ namespace ClinicaApp.ViewModels
 
             if (MedicoSeleccionado == null)
             {
-                ShowError("Debe seleccionar un médico");
+                ShowError("Debe seleccionar un mÃ©dico");
                 return false;
             }
 
@@ -247,7 +275,7 @@ namespace ClinicaApp.ViewModels
             ClearError();
         }
 
-        // Property Changed para actualizar horarios cuando cambia la fecha o médico
+        // Property Changed para actualizar horarios cuando cambia la fecha o mÃ©dico
         partial void OnFechaSeleccionadaChanged(DateTime value)
         {
             if (MedicoSeleccionado != null)

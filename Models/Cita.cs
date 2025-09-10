@@ -1,37 +1,46 @@
+using System.Text.Json.Serialization;
+
 namespace ClinicaApp.Models
 {
     public class Cita
     {
+        [JsonPropertyName("id_cita")]
         public int IdCita { get; set; }
+
+        [JsonPropertyName("id_paciente")]
         public int IdPaciente { get; set; }
+
+        [JsonPropertyName("id_doctor")]
         public int IdDoctor { get; set; }
+
+        [JsonPropertyName("id_sucursal")]
         public int IdSucursal { get; set; }
+
+        [JsonPropertyName("id_tipo_cita")]
         public int IdTipoCita { get; set; } = 1;
+
+        [JsonPropertyName("fecha_hora")]
         public DateTime FechaHora { get; set; }
+
+        [JsonPropertyName("motivo")]
         public string Motivo { get; set; } = string.Empty;
+
+        [JsonPropertyName("tipo_cita")]
         public string TipoCita { get; set; } = "presencial";
+
+        [JsonPropertyName("estado")]
         public string Estado { get; set; } = "Pendiente";
-        public DateTime FechaCreacion { get; set; }
-        public string? Notas { get; set; }
+
+        [JsonPropertyName("notas")]
+        public string Notas { get; set; } = string.Empty;
+
+        [JsonPropertyName("enlace_virtual")]
         public string? EnlaceVirtual { get; set; }
-        public string? SalaVirtual { get; set; }
 
-        // Información adicional para mostrar
+        // Propiedades adicionales para mostrar información
         public string NombrePaciente { get; set; } = string.Empty;
-        public string NombreDoctor { get; set; } = string.Empty;
+        public string NombreMedico { get; set; } = string.Empty;
         public string NombreSucursal { get; set; } = string.Empty;
-        public string EspecialidadDoctor { get; set; } = string.Empty;
-
-        // Propiedades calculadas
-        public string FechaHoraTexto => FechaHora.ToString("dd/MM/yyyy HH:mm");
-        public string CitaInfo => $"{NombrePaciente} - {NombreDoctor}";
-        public string EstadoColor => Estado?.ToLower() switch
-        {
-            "pendiente" => "#f39c12",
-            "confirmada" => "#27ae60",
-            "completada" => "#2ecc71",
-            "cancelada" => "#e74c3c",
-            _ => "#95a5a6"
-        };
+        public string FechaFormateada => FechaHora.ToString("dd/MM/yyyy HH:mm");
     }
 }

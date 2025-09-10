@@ -8,40 +8,54 @@
     Shell.FlyoutBehavior="Disabled"
     Title="ClinicaApp">
 
-    <!-- Login (inicial) -->
-    <ShellContent x:Name="LoginShell"
-                  Title="Login"
-                  ContentTemplate="{DataTemplate views:LoginPage}"
-                  Route="LoginPage" />
+    <!-- LOGIN PAGE -->
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate views:LoginPage}"
+        Route="LoginPage" />
 
-    <!-- Administrador -->
-    <TabBar x:Name="AdminTabs" Route="AdminMenuPage">
-        <Tab Title="Médicos">
-            <ShellContent ContentTemplate="{DataTemplate views:MedicoRegistroPage}" 
-                         Route="MedicoRegistroPage"/>
-        </Tab>
-        <!--<Tab Title="Horarios">
-            <ShellContent ContentTemplate="{DataTemplate views:HorarioConsultaPage}"
-                         Route="HorarioConsultaPage"/>
-        </Tab>-->
-    </TabBar>
+    <!-- ADMINISTRADOR -->
+    <ShellContent
+        Title="Admin Menu"
+        ContentTemplate="{DataTemplate views:AdminMenuPage}"
+        Route="AdminMenuPage" />
 
-    <!-- Recepcionista -->
-    <TabBar x:Name="RecepcionistaTabs" Route="RecepcionistaMenuPage">
-        <Tab Title="Citas">
-            <ShellContent ContentTemplate="{DataTemplate views:CitaCreacionPage}"
-                         Route="CitaCreacionPage"/>
-        </Tab>
-        <!--<Tab Title="Pacientes">
-            <ShellContent ContentTemplate="{DataTemplate views:PacienteBusquedaPage}"
-                         Route="PacienteBusquedaPage"/>
-        </Tab>-->
-    </TabBar>
-    <!-- Enfermero -->
-    <TabBar x:Name="EnfermeroTabs" Route="EnfermeroMenuPage">
-        <Tab Title="Pacientes">
-            <ShellContent ContentTemplate="{DataTemplate views:EnfermeroMenuPage}"
-                         Route="PacienteListaPage"/>
-        </Tab>
-    </TabBar>
+    <ShellContent
+        Title="Registro Médico"
+        ContentTemplate="{DataTemplate views:MedicoRegistroPage}"
+        Route="MedicoRegistroPage" />
+
+    <!--<ShellContent
+        Title="Consultar Médicos"
+        ContentTemplate="{DataTemplate views:MedicoConsultaPage}"
+        Route="MedicoConsultaPage" />-->
+
+    <!-- RECEPCIONISTA -->
+    <!--<ShellContent
+        Title="Recepcionista Menu"
+        ContentTemplate="{DataTemplate views:RecepcionistaMenuPage}"
+        Route="RecepcionistaMenuPage" />-->
+
+    <ShellContent
+        Title="Crear Cita"
+        ContentTemplate="{DataTemplate views:CitaCreacionPage}"
+        Route="CitaCreacionPage" />
+
+    <!--<ShellContent
+        Title="Registro Paciente"
+        ContentTemplate="{DataTemplate views:PacienteRegistroPage}"
+        Route="PacienteRegistroPage" />-->
+
+    <!-- MÉDICO --><!--
+    <ShellContent
+        Title="Médico Menu"
+        ContentTemplate="{DataTemplate views:MedicoMenuPage}"
+        Route="MedicoMenuPage" />-->
+
+    <!-- PACIENTE -->
+    <!--<ShellContent
+        Title="Paciente Menu"
+        ContentTemplate="{DataTemplate views:PacienteMenuPage}"
+        Route="PacienteMenuPage" />-->
+
 </Shell>
