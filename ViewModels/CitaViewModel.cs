@@ -100,19 +100,19 @@ namespace ClinicaApp.ViewModels
             await Shell.Current.GoToAsync("PacienteRegistroPage", parameters);
         }
 
+        // Reemplazar solo el método CargarMedicosAsync en tu CitaViewModel.cs
+
         private async Task CargarMedicosAsync()
         {
             try
             {
-                var response = await _apiService.ObtenerMedicosAsync();
+                // ✅ CORREGIDO: ObtenerMedicosAsync devuelve List<Medico> directamente
+                var medicos = await _apiService.ObtenerMedicosAsync();
 
-                if (response.Success && response.Data != null)
+                Medicos.Clear();
+                foreach (var medico in medicos)
                 {
-                    Medicos.Clear();
-                    foreach (var medico in response.Data)
-                    {
-                        Medicos.Add(medico);
-                    }
+                    Medicos.Add(medico);
                 }
             }
             catch (Exception ex)

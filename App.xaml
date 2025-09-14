@@ -11,7 +11,9 @@
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+            <converters:IntToBoolConverter x:Key="IntToBoolConverter" />
             <converters:InvertedBoolConverter x:Key="IntToDayConverter" />
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

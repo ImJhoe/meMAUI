@@ -37,10 +37,34 @@ namespace ClinicaApp.Models
         [JsonPropertyName("enlace_virtual")]
         public string? EnlaceVirtual { get; set; }
 
-        // Propiedades adicionales para mostrar información
+        // Propiedades adicionales que pueden venir del servidor
+        [JsonPropertyName("nombre_paciente")]
         public string NombrePaciente { get; set; } = string.Empty;
-        public string NombreMedico { get; set; } = string.Empty;
+
+        [JsonPropertyName("cedula_paciente")]
+        public string CedulaPaciente { get; set; } = string.Empty;
+
+        [JsonPropertyName("nombre_doctor")]
+        public string NombreDoctor { get; set; } = string.Empty;
+
+        [JsonPropertyName("nombre_especialidad")]
+        public string NombreEspecialidad { get; set; } = string.Empty;
+
+        [JsonPropertyName("nombre_sucursal")]
         public string NombreSucursal { get; set; } = string.Empty;
-        public string FechaFormateada => FechaHora.ToString("dd/MM/yyyy HH:mm");
+
+        [JsonPropertyName("fecha_creacion")]
+        public DateTime FechaCreacion { get; set; }
+
+        // Propiedades calculadas
+        public string CitaInfo => $"{NombrePaciente} - {NombreDoctor} ({FechaHora:dd/MM/yyyy HH:mm})";
+        public string EstadoColor => Estado switch
+        {
+            "Pendiente" => "Orange",
+            "Confirmada" => "Green",
+            "Cancelada" => "Red",
+            "Completada" => "Blue",
+            _ => "Gray"
+        };
     }
 }

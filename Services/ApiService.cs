@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using ClinicaApp.Converters;
 
 namespace ClinicaApp.Services
 {
@@ -339,21 +340,50 @@ namespace ClinicaApp.Services
             }
         }
 
-        public async Task<ApiResponse<List<Medico>>> ObtenerMedicosAsync()
+        // Agregar este método a tu ApiService.cs
+        public async Task<List<Medico>> ObtenerMedicosAsync()
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine("[API] Obteniendo médicos");
-                return await GetAsync<List<Medico>>("api/medicos");
+                System.Diagnostics.Debug.WriteLine("[GET] api/medicos");
+
+                var response = await _httpClient.GetAsync("api/medicos");
+                var content = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[GET] Status: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"[GET] Content: {content}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // ✅ USAR OPTIONS CON CONVERTER PARA MANEJAR CEDULA
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new StringOrNumberConverter() }
+                    };
+
+                    var result = JsonSerializer.Deserialize<ApiResponse<List<Medico>>>(content, options);
+                    return result?.Data ?? new List<Medico>();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[GET ERROR] {response.StatusCode}: {content}");
+                    return new List<Medico>();
+                }
+            }
+            catch (JsonException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET ERROR] JSON Error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[GET ERROR] Path: {ex.Path}");
+
+                // ✅ DEVOLVER LISTA VACÍA EN LUGAR DE LANZAR EXCEPCIÓN
+                return new List<Medico>();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[API ERROR] Obtener médicos: {ex.Message}");
-                return new ApiResponse<List<Medico>>
-                {
-                    Success = false,
-                    Message = $"Error obteniendo médicos: {ex.Message}"
-                };
+                System.Diagnostics.Debug.WriteLine($"[GET ERROR] {ex.Message}");
+                return new List<Medico>();
             }
         }
         // Métodos para horarios - USAR TU MODELO HORARIO
@@ -413,21 +443,156 @@ namespace ClinicaApp.Services
                 };
             }
         }
-        // ✅ AGREGAR: Método para obtener horarios por médico
-        public async Task<ApiResponse<List<Horario>>> ObtenerHorariosPorMedicoAsync(int idMedico)
+        // Método mejorado para obtener horarios de un médico
+        public async Task<List<Horario>> ObtenerHorariosMedicoAsync(int idMedico)
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"[API] Obteniendo horarios para médico ID: {idMedico}");
-                return await GetAsync<List<Horario>>($"api/horarios/medico/{idMedico}");
+                System.Diagnostics.Debug.WriteLine($"[API] Obteniendo horarios para médico {idMedico}");
+
+                var response = await _httpClient.GetAsync($"api/horarios/medico/{idMedico}");
+                var content = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[API] Status horarios: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"[API] Content horarios: {content}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonDocument = JsonDocument.Parse(content);
+                    var root = jsonDocument.RootElement;
+
+                    if (root.TryGetProperty("success", out var successProperty) &&
+                        successProperty.GetBoolean() &&
+                        root.TryGetProperty("data", out var dataProperty))
+                    {
+                        var horarios = new List<Horario>();
+
+                        foreach (var item in dataProperty.EnumerateArray())
+                        {
+                            try
+                            {
+                                var horario = new Horario
+                                {
+                                    IdHorario = item.TryGetProperty("id_horario", out var idProp) ? idProp.GetInt32() : 0,
+                                    IdMedico = item.TryGetProperty("id_medico", out var medicoIdProp) ? medicoIdProp.GetInt32() : idMedico,
+                                    IdSucursal = item.TryGetProperty("id_sucursal", out var sucursalProp) ? sucursalProp.GetInt32() : 0,
+                                    DiaSemana = item.TryGetProperty("dia_semana", out var diaProp) ? diaProp.GetInt32() : 0,
+                                    HoraInicio = item.TryGetProperty("hora_inicio", out var inicioP) ? inicioP.GetString() ?? "" : "",
+                                    HoraFin = item.TryGetProperty("hora_fin", out var finProp) ? finProp.GetString() ?? "" : "",
+                                    IntervaloMinutos = item.TryGetProperty("duracion_cita", out var durProp) ? durProp.GetInt32() : 30,
+                                    NombreSucursal = item.TryGetProperty("nombre_sucursal", out var sucNomProp) ? sucNomProp.GetString() ?? "" : "",
+                                    Activo = true
+                                };
+
+                                horarios.Add(horario);
+                                System.Diagnostics.Debug.WriteLine($"[API] Horario agregado: {horario.HorarioTexto}");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[API] Error procesando horario: {ex.Message}");
+                            }
+                        }
+
+                        return horarios;
+                    }
+                }
+
+                return new List<Horario>();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[API ERROR] Obtener horarios médico: {ex.Message}");
-                return new ApiResponse<List<Horario>>
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Error obteniendo horarios: {ex.Message}");
+                return new List<Horario>();
+            }
+        }
+        // Método para actualizar un horario
+        public async Task<ApiResponse<bool>> ActualizarHorarioAsync(Horario horario)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[API] Actualizando horario {horario.IdHorario}");
+
+                var data = new
+                {
+                    dia_semana = horario.DiaSemana,
+                    hora_inicio = horario.HoraInicio,
+                    hora_fin = horario.HoraFin,
+                    duracion_cita = horario.IntervaloMinutos,
+                    id_sucursal = horario.IdSucursal
+                };
+
+                // ✅ USAR PUT en lugar de POST
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PutAsync($"api/horarios/{horario.IdHorario}", content);
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[API] Status actualizar: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new ApiResponse<bool>
+                    {
+                        Success = true,
+                        Message = "Horario actualizado correctamente"
+                    };
+                }
+                else
+                {
+                    return new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Error del servidor: {response.StatusCode} - {responseContent}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Error actualizando horario: {ex.Message}");
+                return new ApiResponse<bool>
                 {
                     Success = false,
-                    Message = $"Error obteniendo horarios del médico: {ex.Message}"
+                    Message = $"Error actualizando horario: {ex.Message}"
+                };
+            }
+        }
+        // Método para eliminar un horario
+        public async Task<ApiResponse<bool>> EliminarHorarioAsync(int idHorario)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[API] Eliminando horario {idHorario}");
+
+                var response = await _httpClient.DeleteAsync($"api/horarios/{idHorario}");
+                var content = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[API] Status eliminar: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return new ApiResponse<bool>
+                    {
+                        Success = true,
+                        Message = "Horario eliminado correctamente"
+                    };
+                }
+                else
+                {
+                    return new ApiResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Error del servidor: {response.StatusCode}"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Error eliminando horario: {ex.Message}");
+                return new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Error eliminando horario: {ex.Message}"
                 };
             }
         }
