@@ -212,9 +212,7 @@ namespace ClinicaApp.ViewModels
         }
 
 
-        // Crear la cita
         [RelayCommand]
-        // Actualizar el método CrearCitaAsync para usar el nuevo modelo
         private async Task CrearCitaAsync()
         {
             if (!ValidarCita())
@@ -227,7 +225,6 @@ namespace ClinicaApp.ViewModels
                 ShowLoading(true);
                 ClearError();
 
-                // Construir fecha y hora de la cita usando HorarioDisponible
                 DateTime fechaHoraCita = HorarioSeleccionado!.FechaHoraCompleta;
 
                 System.Diagnostics.Debug.WriteLine($"[CITA] 📊 Datos de la cita:");
@@ -237,22 +234,29 @@ namespace ClinicaApp.ViewModels
                 System.Diagnostics.Debug.WriteLine($"  - Fecha/Hora: {fechaHoraCita:yyyy-MM-dd HH:mm:ss}");
                 System.Diagnostics.Debug.WriteLine($"  - Motivo: {MotivoCita.Trim()}");
 
-                var cita = new Cita
+                // Crear objeto anónimo para enviar
+                var citaRequest = new
                 {
-                    IdPaciente = PacienteEncontrado!.IdPaciente,
-                    IdDoctor = MedicoSeleccionado!.IdMedico,
-                    IdSucursal = HorarioSeleccionado!.IdSucursal, // ✅ Ahora viene del horario seleccionado
-                    FechaHora = fechaHoraCita,
-                    Motivo = MotivoCita.Trim(),
-                    TipoCita = "presencial",
-                    Estado = "Pendiente"
+                    id_paciente = PacienteEncontrado!.IdPaciente,
+                    id_doctor = MedicoSeleccionado!.IdMedico,
+                    id_sucursal = HorarioSeleccionado!.IdSucursal,
+                    id_tipo_cita = 1,
+                    fecha_hora = fechaHoraCita.ToString("yyyy-MM-dd HH:mm:ss"),
+                    motivo = MotivoCita.Trim(),
+                    tipo_cita = "presencial",
+                    estado = "Pendiente",
+                    notas = "",
+                    enlace_virtual = (string?)null,
+                    sala_virtual = (string?)null
                 };
 
-                var response = await _apiService.CrearCitaAsync(cita);
+                // ✅ CAMBIO PRINCIPAL: Usar CitaResponse en lugar de Cita
+                var response = await _apiService.PostAsync<CitaResponse>("api/citas", citaRequest);
 
                 if (response.Success)
                 {
                     System.Diagnostics.Debug.WriteLine("[CITA] ✅ PUNTO 3-7 COMPLETADO: Cita creada exitosamente");
+                    System.Diagnostics.Debug.WriteLine($"[CITA] 🆔 ID de cita creada: {response.Data?.IdCita}");
 
                     await Shell.Current.DisplayAlert("🎉 Éxito",
                         "Cita médica creada correctamente", "OK");

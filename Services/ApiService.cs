@@ -682,9 +682,39 @@ namespace ClinicaApp.Services
             }
         }
 
-        public async Task<ApiResponse<Cita>> CrearCitaAsync(Cita cita)
+       public async Task<ApiResponse<Cita>> CrearCitaAsync(Cita cita)
+{
+    try
+    {
+        // ✅ SOLUCIÓN: Convertir la cita a un objeto anónimo con fecha en formato correcto
+        var citaParaAPI = new
         {
-            return await PostAsync<Cita>("api/citas", cita);
-        }
+            id_paciente = cita.IdPaciente,
+            id_doctor = cita.IdDoctor,
+            id_sucursal = cita.IdSucursal,
+            id_tipo_cita = cita.IdTipoCita,
+            fecha_hora = cita.FechaHora.ToString("yyyy-MM-dd HH:mm:ss"), // ✅ FORMATO CORRECTO
+            motivo = cita.Motivo,
+            tipo_cita = cita.TipoCita,
+            estado = cita.Estado,
+            notas = cita.Notas ?? "",
+            enlace_virtual = cita.EnlaceVirtual,
+            sala_virtual = cita.SalaVirtual
+        };
+
+        System.Diagnostics.Debug.WriteLine($"[POST] api/citas - Data: {System.Text.Json.JsonSerializer.Serialize(citaParaAPI)}");
+
+        return await PostAsync<Cita>("api/citas", citaParaAPI);
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine($"[CITA ERROR] {ex.Message}");
+        return new ApiResponse<Cita>
+        {
+            Success = false,
+            Message = $"Error al crear cita: {ex.Message}"
+        };
+    }
+}
     }
 }
