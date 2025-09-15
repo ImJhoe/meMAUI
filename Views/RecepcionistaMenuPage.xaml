@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.RecepcionistaMenuPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:ClinicaApp.ViewModels"
+             Title="Recepcionista Menu">
+
+    <ContentPage.BindingContext>
+        <viewmodels:RecepcionistaMenuViewModel />
+    </ContentPage.BindingContext>
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- HEADER -->
+            <Frame BackgroundColor="#2E7D32" Padding="15" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="🏥 PANEL RECEPCIONISTA" 
+                           FontSize="24" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="White"/>
+                    <Label Text="{Binding UserName}" 
+                           FontSize="16" 
+                           HorizontalOptions="Center"
+                           TextColor="White"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- PUNTO 3: CREAR CITAS -->
+            <Frame BackgroundColor="#E8F5E8" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="📅 PUNTO 3: CREAR CITAS" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           TextColor="#2E7D32"/>
+
+                    <Label Text="Pantalla de creación de cita accesible desde el menú" 
+                           FontSize="14" 
+                           TextColor="Gray"/>
+
+                    <Button Text="✨ Crear Nueva Cita"
+                            BackgroundColor="#4CAF50"
+                            TextColor="White"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            Command="{Binding IrACrearCitaCommand}"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- FLUJO COMPLETO DE CITAS -->
+            <Frame BackgroundColor="#FFF3E0" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="🔄 GESTIÓN DE CITAS" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="#E65100"/>
+
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
+
+                        <Button Grid.Row="0" Grid.Column="0"
+                                Text="🔍 Buscar Paciente"
+                                BackgroundColor="#FF9800"
+                                TextColor="White"
+                                Command="{Binding IrACrearCitaCommand}"/>
+
+                        <Button Grid.Row="0" Grid.Column="1"
+                                Text="👤 Registrar Paciente"
+                                BackgroundColor="#FF9800"
+                                TextColor="White"
+                                Command="{Binding IrARegistroPacienteCommand}"/>
+
+                        <Button Grid.Row="1" Grid.Column="0"
+                                Text="📋 Ver Citas"
+                                BackgroundColor="#FF9800"
+                                TextColor="White"
+                                Command="{Binding VerCitasCommand}"/>
+
+                        <Button Grid.Row="1" Grid.Column="1"
+                                Text="🗓️ Horarios Médicos"
+                                BackgroundColor="#FF9800"
+                                TextColor="White"
+                                Command="{Binding VerHorariosMedicosCommand}"/>
+
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN -->
+            <Frame BackgroundColor="#E3F2FD" Padding="15" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="ℹ️ FUNCIONALIDADES DISPONIBLES" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#1976D2"/>
+
+                    <Label FontSize="14" TextColor="#424242">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="✓ Buscar pacientes por cédula" />
+                                <Span Text="&#x0a;✓ Registrar nuevos pacientes" />
+                                <Span Text="&#x0a;✓ Crear citas médicas" />
+                                <Span Text="&#x0a;✓ Ver horarios disponibles" />
+                                <Span Text="&#x0a;✓ Flujo completo de citas" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </StackLayout>
+            </Frame>
+
+            <!-- CERRAR SESIÓN -->
+            <Button Text="🚪 Cerrar Sesión"
+                    BackgroundColor="#D32F2F"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    Command="{Binding LogoutCommand}"/>
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

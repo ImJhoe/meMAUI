@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace ClinicaApp.ViewModels
@@ -19,6 +19,9 @@ namespace ClinicaApp.ViewModels
 
         [ObservableProperty]
         private bool isRefreshing;
+
+        // ✅ NUEVA PROPIEDAD: IsNotLoading para binding en XAML
+        public bool IsNotLoading => !IsLoading;
 
         protected virtual void ShowError(string message)
         {
@@ -41,6 +44,14 @@ namespace ClinicaApp.ViewModels
         protected virtual void ShowLoading(bool show = true)
         {
             IsLoading = show;
+            // ✅ IMPORTANTE: Notificar que IsNotLoading también cambió
+            OnPropertyChanged(nameof(IsNotLoading));
+        }
+
+        // ✅ MÉTODO PARA NOTIFICAR CAMBIOS EN IsLoading
+        partial void OnIsLoadingChanged(bool value)
+        {
+            OnPropertyChanged(nameof(IsNotLoading));
         }
     }
 }

@@ -25,36 +25,35 @@
         ContentTemplate="{DataTemplate views:MedicoRegistroPage}"
         Route="MedicoRegistroPage" />
 
-    <!-- ✅ NUEVO: Punto 2 -->
     <ShellContent
         Title="Consultar Médicos"
         ContentTemplate="{DataTemplate views:MedicoConsultaPage}"
         Route="MedicoConsultaPage" />
 
-    <!-- RECEPCIONISTA -->
-    <!--<ShellContent
+    <!-- ✅ RECEPCIONISTA - PUNTO 3 -->
+    <ShellContent
         Title="Recepcionista Menu"
         ContentTemplate="{DataTemplate views:RecepcionistaMenuPage}"
-        Route="RecepcionistaMenuPage" />-->
+        Route="RecepcionistaMenuPage" />
 
     <ShellContent
         Title="Crear Cita"
         ContentTemplate="{DataTemplate views:CitaCreacionPage}"
         Route="CitaCreacionPage" />
-
-    <!--<ShellContent
+    <!-- ✅ NUEVO: PUNTO 5 - Registro de Paciente -->
+    <ShellContent
         Title="Registro Paciente"
         ContentTemplate="{DataTemplate views:PacienteRegistroPage}"
-        Route="PacienteRegistroPage" />-->
+        Route="PacienteRegistroPage" />
 
     <!-- MÉDICO --><!--
     <ShellContent
         Title="Médico Menu"
         ContentTemplate="{DataTemplate views:MedicoMenuPage}"
-        Route="MedicoMenuPage" />-->
+        Route="MedicoMenuPage" />
 
-    <!-- PACIENTE -->
-    <!--<ShellContent
+    --><!-- PACIENTE --><!--
+    <ShellContent
         Title="Paciente Menu"
         ContentTemplate="{DataTemplate views:PacienteMenuPage}"
         Route="PacienteMenuPage" />-->

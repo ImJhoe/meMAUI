@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.PacienteRegistroPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClinicaApp.ViewModels"
+             Title="{Binding Title}"
+             x:DataType="vm:PacienteRegistroViewModel">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <!-- HEADER DEL PUNTO 5 -->
+            <Frame BackgroundColor="#FF5722" Padding="15" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="👤 PUNTO 5: REGISTRO DE PACIENTE" 
+                           FontSize="22" 
+                           FontAttributes="Bold" 
+                           TextColor="White"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Vinculado al flujo de creación de cita" 
+                           FontSize="14" 
+                           TextColor="White"
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- INDICADOR DE CARGA -->
+            <ActivityIndicator IsVisible="{Binding IsLoading}"
+                              IsRunning="{Binding IsLoading}"
+                              Color="{StaticResource Primary}"
+                              Scale="1.5"/>
+
+            <!-- INFORMACIÓN DEL CONTEXTO -->
+            <Frame BackgroundColor="#E3F2FD" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="5">
+                    <Label Text="ℹ️ INFORMACIÓN" 
+                           FontSize="16" 
+                           FontAttributes="Bold"
+                           TextColor="#1976D2"/>
+                    <Label Text="{Binding CedulaBuscada, StringFormat='Registrando paciente con cédula: {0}'}"
+                           FontSize="14"
+                           TextColor="#1976D2"/>
+                    <!-- ✅ CORREGIDO: Eliminado FontStyle="Italic" -->
+                    <Label Text="Después del registro, regresará automáticamente al formulario de cita."
+                           FontSize="12"
+                           TextColor="#1976D2"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- DATOS PERSONALES -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="📝 DATOS PERSONALES" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="#333"/>
+
+                    <Entry Text="{Binding Cedula}"
+                           Placeholder="Cédula (ej: 1755973342)"
+                           Keyboard="Numeric"
+                           IsReadOnly="True"
+                           BackgroundColor="LightGray"
+                           FontSize="16"/>
+
+                    <Entry Text="{Binding Nombres}"
+                           Placeholder="Nombres (ej: Ana María)"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Entry Text="{Binding Apellidos}"
+                           Placeholder="Apellidos (ej: López Martínez)"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Entry Text="{Binding Correo}"
+                           Placeholder="Correo electrónico"
+                           Keyboard="Email"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Label Text="Fecha de nacimiento:" 
+                           FontSize="14" 
+                           TextColor="Gray"/>
+
+                    <DatePicker Date="{Binding FechaNacimiento}"
+                               MaximumDate="{Binding FechaMaxima}"
+                               FontSize="16"
+                               IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Picker Title="Seleccione sexo"
+                            ItemsSource="{Binding OpcionesSexo}"
+                            SelectedItem="{Binding SexoSeleccionado}"
+                            FontSize="16"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- INFORMACIÓN MÉDICA -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="🩺 INFORMACIÓN MÉDICA" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="#333"/>
+
+                    <Picker Title="Tipo de sangre (opcional)"
+                            ItemsSource="{Binding TiposSangre}"
+                            SelectedItem="{Binding TipoSangreSeleccionado}"
+                            FontSize="16"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Entry Text="{Binding Telefono}"
+                           Placeholder="Teléfono (ej: 0987654321)"
+                           Keyboard="Telephone"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Entry Text="{Binding Alergias}"
+                           Placeholder="Alergias conocidas (opcional)"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- CONTACTO DE EMERGENCIA -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="🚨 CONTACTO DE EMERGENCIA" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="#333"/>
+
+                    <Entry Text="{Binding ContactoEmergencia}"
+                           Placeholder="Nombre del contacto de emergencia"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                    <Entry Text="{Binding TelefonoEmergencia}"
+                           Placeholder="Teléfono de emergencia"
+                           Keyboard="Telephone"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- BOTÓN REGISTRAR -->
+            <Button Text="✅ REGISTRAR PACIENTE"
+                    Command="{Binding RegistrarPacienteCommand}"
+                    BackgroundColor="#4CAF50"
+                    TextColor="White"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    CornerRadius="8"
+                    Padding="15"
+                    IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+            <!-- MENSAJE DE ERROR -->
+            <Frame IsVisible="{Binding HasError}" 
+                   BackgroundColor="#F8D7DA" 
+                   Padding="15" 
+                   CornerRadius="10">
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#721C24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+            </Frame>
+
+            <!-- BOTONES DE NAVEGACIÓN -->
+            <StackLayout Orientation="Horizontal" 
+                         HorizontalOptions="Center" 
+                         Spacing="10"
+                         Margin="0,20,0,0">
+
+                <Button Text="❌ Cancelar"
+                        BackgroundColor="Gray"
+                        TextColor="White"
+                        Command="{Binding CancelarCommand}"/>
+
+                <Button Text="🔄 Limpiar"
+                        BackgroundColor="Orange"
+                        TextColor="White"
+                        Command="{Binding LimpiarFormularioCommand}"/>
+            </StackLayout>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

@@ -20,87 +20,57 @@ namespace ClinicaApp.ViewModels
         [ObservableProperty]
         private string password = string.Empty;
 
-     [RelayCommand]
-private async Task LoginAsync()
-{
-    System.Diagnostics.Debug.WriteLine($"[LOGIN DEBUG] Método LoginAsync ejecutado");
-    System.Diagnostics.Debug.WriteLine($"[LOGIN DEBUG] Email: '{Email}'");
-    System.Diagnostics.Debug.WriteLine($"[LOGIN DEBUG] Password: '{Password}'");
-    
-    if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
-    {
-        System.Diagnostics.Debug.WriteLine("[LOGIN DEBUG] Campos vacíos");
-        ShowError("Por favor completa todos los campos");
-        return;
-    }
+        [RelayCommand]
+        private async Task Login()
+        {
+            if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrWhiteSpace(Password))
+            {
+                ShowError("Por favor ingrese usuario y contraseña");
+                return;
+            }
 
             try
             {
                 ShowLoading(true);
                 ClearError();
 
-                // Debug de red
-                var connectivity = Connectivity.Current.NetworkAccess;
-                System.Diagnostics.Debug.WriteLine($"[NETWORK] Estado de red: {connectivity}");
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] Intentando login con usuario: {Email}");
 
-                if (connectivity != NetworkAccess.Internet)
-                {
-                    ShowError("No hay conexión a internet");
-                    return;
-                }
-
-                // Test de conexión
-                var (connectionOk, connectionMsg) = await _apiService.TestConnectionAsync();
-                System.Diagnostics.Debug.WriteLine($"[CONNECTION] Resultado: {connectionOk} - {connectionMsg}");
-
-                if (!connectionOk)
-                {
-                    ShowError($"Error de conexión: {connectionMsg}");
-                    return;
-                }
-
-                // Hacer login
+                // ✅ CORREGIDO: Tu ApiService.LoginAsync devuelve ApiResponse<Usuario> directamente
                 var response = await _apiService.LoginAsync(Email.Trim(), Password.Trim());
 
                 if (response.Success && response.Data != null)
                 {
+                    // ✅ CORREGIDO: response.Data ES el Usuario directamente, no hay .User
                     var usuario = response.Data;
 
-                    // Debug detallado del usuario recibido
-                    System.Diagnostics.Debug.WriteLine($"[LOGIN VM] Usuario recibido:");
-                    System.Diagnostics.Debug.WriteLine($"  - ID: {usuario.IdUsuario}");
-                    System.Diagnostics.Debug.WriteLine($"  - Username: {usuario.Username}");
-                    System.Diagnostics.Debug.WriteLine($"  - Nombres: '{usuario.Nombres}'");
-                    System.Diagnostics.Debug.WriteLine($"  - Apellidos: '{usuario.Apellidos}'");
-                    System.Diagnostics.Debug.WriteLine($"  - NombreCompleto: '{usuario.NombreCompleto}'");
-                    System.Diagnostics.Debug.WriteLine($"  - Rol: '{usuario.NombreRol}'");
+                    System.Diagnostics.Debug.WriteLine($"[LOGIN] ✅ Login exitoso: {usuario.Username}");
+                    System.Diagnostics.Debug.WriteLine($"[LOGIN] Usuario ID: {usuario.IdUsuario}");
+                    System.Diagnostics.Debug.WriteLine($"[LOGIN] Rol: {usuario.NombreRol}");
+                    System.Diagnostics.Debug.WriteLine($"[LOGIN] Rol ID: {usuario.IdRol}"); // Usar IdRol, no RolId
 
-                    // Verificar si el rol está vacío
-                    if (string.IsNullOrEmpty(usuario.NombreRol))
-                    {
-                        ShowError("Error: Rol de usuario vacío");
-                        return;
-                    }
-
-                    System.Diagnostics.Debug.WriteLine($"[LOGIN VM] Login exitoso: {usuario.NombreCompleto}");
-
-                    // Guardar sesión
+                    // Guardar datos del usuario
                     await SecureStorage.SetAsync("UserId", usuario.IdUsuario.ToString());
-                    await SecureStorage.SetAsync("UserName", usuario.NombreCompleto);
+                    await SecureStorage.SetAsync("UserName", $"{usuario.Nombres} {usuario.Apellidos}");
                     await SecureStorage.SetAsync("UserRole", usuario.NombreRol);
+                    await SecureStorage.SetAsync("UserRoleId", usuario.IdRol.ToString()); // ✅ CORREGIDO: IdRol
 
-                    // Navegar según rol
-                    await NavigateBasedOnRole(usuario.NombreRol);
+                    // ✅ NOTA: No hay token en tu respuesta actual, comentamos esta línea
+                    // await SecureStorage.SetAsync("AuthToken", response.Data.Token);
+
+                    // ✅ NAVEGACIÓN INTELIGENTE SEGÚN ROL
+                    await NavigateBasedOnRole(usuario.NombreRol, usuario.IdRol);
                 }
                 else
                 {
-                    ShowError(response.Message ?? "Error de autenticación");
+                    System.Diagnostics.Debug.WriteLine($"[LOGIN] ❌ Login fallido: {response.Message}");
+                    ShowError(response.Message ?? "Usuario o contraseña incorrectos");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[LOGIN ERROR] {ex}");
-                ShowError($"Error inesperado: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] ❌ Error de conexión: {ex.Message}");
+                ShowError($"Error de conexión: {ex.Message}");
             }
             finally
             {
@@ -108,41 +78,47 @@ private async Task LoginAsync()
             }
         }
 
-        // En LoginViewModel.cs, reemplazar NavigateBasedOnRole:
-        private async Task NavigateBasedOnRole(string role)
+        private async Task NavigateBasedOnRole(string role, int roleId)
         {
-            System.Diagnostics.Debug.WriteLine($"[NAVIGATION] Navegando para rol: '{role}'");
-
-            string targetPage = role?.ToLower() switch
+            try
             {
-                "administrador" => "//AdminMenuPage",
-                "recepcionista" => "//RecepcionistaMenuPage",
-                "medico" => "//MedicoMenuPage",
-                "médico" => "//MedicoMenuPage",
-                "paciente" => "//PacienteMenuPage",
-                "enfermero" => "//EnfermeroMenuPage",
-                "enfermera" => "//EnfermeroMenuPage",
-                _ => null
-            };
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] 🎯 Navegando según rol: {role} (ID: {roleId})");
 
-            System.Diagnostics.Debug.WriteLine($"[NAVIGATION] Página destino: {targetPage ?? "NINGUNA"}");
+                switch (roleId)
+                {
+                    case 1: // Administrador
+                        System.Diagnostics.Debug.WriteLine("[LOGIN] ✅ Rol Administrador - Navegando a AdminMenuPage");
+                        await Shell.Current.GoToAsync("//AdminMenuPage");
+                        break;
 
-            if (!string.IsNullOrEmpty(targetPage))
-            {
-                try
-                {
-                    await Shell.Current.GoToAsync(targetPage);
-                    System.Diagnostics.Debug.WriteLine($"[NAVIGATION] Navegación exitosa a {targetPage}");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[NAVIGATION ERROR] {ex.Message}");
-                    ShowError($"Error navegando a la pantalla principal. {ex.Message}");
+                    case 72: // Recepcionista - ¡NUEVO PARA PUNTO 3!
+                        System.Diagnostics.Debug.WriteLine("[LOGIN] ✅ Rol Recepcionista - Navegando a RecepcionistaMenuPage");
+                        await Shell.Current.GoToAsync("//RecepcionistaMenuPage");
+                        break;
+
+                    case 70: // Médico
+                        System.Diagnostics.Debug.WriteLine("[LOGIN] ✅ Rol Médico - Navegando a MedicoMenuPage");
+                        await Shell.Current.DisplayAlert("Info", "Menú de médico en desarrollo", "OK");
+                        await Shell.Current.GoToAsync("//AdminMenuPage"); // Temporal
+                        break;
+
+                    case 71: // Paciente
+                        System.Diagnostics.Debug.WriteLine("[LOGIN] ✅ Rol Paciente - Navegando a PacienteMenuPage");
+                        await Shell.Current.DisplayAlert("Info", "Menú de paciente en desarrollo", "OK");
+                        await Shell.Current.GoToAsync("//AdminMenuPage"); // Temporal
+                        break;
+
+                    default:
+                        System.Diagnostics.Debug.WriteLine($"[LOGIN] ⚠️ Rol no reconocido: {role} (ID: {roleId})");
+                        await Shell.Current.DisplayAlert("Aviso", $"Acceso como {role}. Redirigiendo a menú administrador.", "OK");
+                        await Shell.Current.GoToAsync("//AdminMenuPage");
+                        break;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                ShowError($"Rol de usuario no reconocido: '{role}'. Roles válidos: Administrador, Recepcionista, Medico, Paciente, Enfermero");
+                System.Diagnostics.Debug.WriteLine($"[LOGIN] ❌ Error en navegación: {ex.Message}");
+                ShowError("Error al navegar después del login");
             }
         }
     }

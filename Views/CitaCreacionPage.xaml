@@ -7,55 +7,229 @@
              x:DataType="vm:CitaViewModel">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
+        <StackLayout Padding="20" Spacing="15">
 
-            <Label Text="Crear Nueva Cita" 
-                   FontSize="24" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center"/>
+            <!-- HEADER DEL PUNTO 3 -->
+            <Frame BackgroundColor="#1976D2" Padding="15" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="📅 PUNTO 3: CREAR CITA" 
+                           FontSize="22" 
+                           FontAttributes="Bold" 
+                           TextColor="White"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Pantalla de creación accesible desde menú + búsqueda por cédula" 
+                           FontSize="14" 
+                           TextColor="White"
+                           HorizontalOptions="Center"/>
+                </StackLayout>
+            </Frame>
 
-            <!-- Loading Indicator -->
+            <!-- INDICADOR DE CARGA -->
             <ActivityIndicator IsVisible="{Binding IsLoading}"
                               IsRunning="{Binding IsLoading}"
-                              Color="{StaticResource Primary}"/>
+                              Color="{StaticResource Primary}"
+                              Scale="1.5"/>
 
-            <!-- Buscar Paciente -->
-            <Label Text="Buscar Paciente" FontAttributes="Bold"/>
+            <!-- PASO 1: BÚSQUEDA POR CÉDULA -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="10" HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="🔍 PASO 1: BUSCAR PACIENTE POR CÉDULA" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           TextColor="#333"/>
 
-            <Entry Placeholder="Número de cédula"
-                   Text="{Binding CedulaPaciente}"/>
+                    <Label Text="Ingrese el número de cédula del paciente:" 
+                           FontSize="14" 
+                           TextColor="Gray"/>
 
-            <Button Text="Buscar Paciente"
-                    Command="{Binding BuscarPacienteCommand}"
-                    BackgroundColor="{StaticResource Primary}"
-                    TextColor="White"/>
+                    <!-- ✅ CAMBIO: Usar IsLoading con Converter en lugar de IsNotLoading -->
+                    <Entry Placeholder="Ej: 1755973342"
+                           Text="{Binding CedulaPaciente}"
+                           Keyboard="Numeric"
+                           FontSize="16"
+                           IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
 
-            <!-- Resultado de búsqueda -->
-            <StackLayout IsVisible="{Binding MostrandoPaciente}">
-
-                <!-- Paciente encontrado -->
-                <StackLayout IsVisible="{Binding PacienteExiste}">
-                    <Label Text="Paciente Encontrado:" FontAttributes="Bold" TextColor="Green"/>
-                    <Label Text="{Binding PacienteEncontrado.NombreCompleto}"/>
-                    <Label Text="{Binding PacienteEncontrado.Correo}"/>
+                    <Button Text="🔍 BUSCAR PACIENTE"
+                            Command="{Binding BuscarPacienteCommand}"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="8"
+                            IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
                 </StackLayout>
+            </Frame>
 
-                <!-- Paciente no existe -->
-                <StackLayout IsVisible="{Binding PacienteExiste, Converter={StaticResource InvertedBoolConverter}}">
-                    <Label Text="Paciente no encontrado" TextColor="Orange"/>
-                    <Button Text="Registrar Nuevo Paciente"
-                            Command="{Binding IrARegistroPacienteCommand}"
-                            BackgroundColor="{StaticResource Secondary}"/>
-                </StackLayout>
+            <!-- RESULTADO DE BÚSQUEDA -->
+            <StackLayout IsVisible="{Binding MostrandoPaciente}" Spacing="15">
+
+                <!-- PACIENTE ENCONTRADO -->
+                <Frame IsVisible="{Binding PacienteExiste}" 
+                       BackgroundColor="#E8F5E8" 
+                       Padding="15" 
+                       CornerRadius="10" 
+                       HasShadow="True">
+                    <StackLayout Spacing="8">
+                        <Label Text="✅ PACIENTE ENCONTRADO" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#2E7D32"/>
+
+                        <Label Text="{Binding PacienteEncontrado.NombreCompleto}"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="#333"/>
+
+                        <Label Text="{Binding PacienteEncontrado.Correo}"
+                               FontSize="14"
+                               TextColor="#666"/>
+
+                        <Label Text="{Binding PacienteEncontrado.Cedula, StringFormat='Cédula: {0}'}"
+                               FontSize="14"
+                               TextColor="#666"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- PACIENTE NO EXISTE - PUNTO 4 -->
+                <Frame IsVisible="{Binding PacienteExiste, Converter={StaticResource InvertedBoolConverter}}" 
+                       BackgroundColor="#FFF3CD" 
+                       Padding="15" 
+                       CornerRadius="10" 
+                       HasShadow="True">
+                    <StackLayout Spacing="10">
+                        <Label Text="⚠️ PACIENTE NO ENCONTRADO" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="#856404"/>
+
+                        <Label Text="No se encontró un paciente con esa cédula en el sistema." 
+                               FontSize="14" 
+                               TextColor="#856404"/>
+
+                        <!-- PUNTO 4: Botón "Añadir paciente" -->
+                        <Button Text="➕ AÑADIR PACIENTE"
+                                Command="{Binding IrARegistroPacienteCommand}"
+                                BackgroundColor="#FF9800"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                CornerRadius="8"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- PASO 2: SELECCIÓN DE MÉDICO (Solo si paciente existe) -->
+                <Frame IsVisible="{Binding PacienteExiste}" 
+                       BackgroundColor="White" 
+                       Padding="15" 
+                       CornerRadius="10" 
+                       HasShadow="True">
+                    <StackLayout Spacing="10">
+                        <Label Text="👨‍⚕️ PASO 2: SELECCIONAR MÉDICO" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="#333"/>
+
+                        <Picker Title="Seleccione un médico"
+                                ItemsSource="{Binding Medicos}"
+                                ItemDisplayBinding="{Binding NombreCompleto}"
+                                SelectedItem="{Binding MedicoSeleccionado}"
+                                FontSize="16"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- PASO 3: FECHA Y HORARIO (Solo si médico seleccionado) -->
+                <Frame IsVisible="{Binding MedicoSeleccionado, Converter={StaticResource IsNotNullConverter}}" 
+                       BackgroundColor="White" 
+                       Padding="15" 
+                       CornerRadius="10" 
+                       HasShadow="True">
+                    <StackLayout Spacing="10">
+                        <Label Text="📅 PASO 3: FECHA Y HORARIO" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="#333"/>
+
+                        <Label Text="Seleccione la fecha:" 
+                               FontSize="14" 
+                               TextColor="Gray"/>
+
+                        <DatePicker Date="{Binding FechaSeleccionada}"
+                                   FontSize="16"
+                                   IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                        <Label Text="Horarios disponibles:" 
+                               FontSize="14" 
+                               TextColor="Gray"/>
+
+                        <Picker Title="Seleccione un horario"
+                                ItemsSource="{Binding HorariosDisponibles}"
+                                ItemDisplayBinding="{Binding HoraInicio}"
+                                SelectedItem="{Binding HorarioSeleccionado}"
+                                FontSize="16"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- PASO 4: MOTIVO DE LA CITA -->
+                <Frame IsVisible="{Binding HorarioSeleccionado, Converter={StaticResource IsNotNullConverter}}" 
+                       BackgroundColor="White" 
+                       Padding="15" 
+                       CornerRadius="10" 
+                       HasShadow="True">
+                    <StackLayout Spacing="10">
+                        <Label Text="📝 PASO 4: MOTIVO DE LA CITA" 
+                               FontSize="18" 
+                               FontAttributes="Bold"
+                               TextColor="#333"/>
+
+                        <Entry Placeholder="Ej: Consulta general, dolor de cabeza, control rutinario..."
+                               Text="{Binding MotivoCita}"
+                               FontSize="16"
+                               IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- BOTÓN CREAR CITA -->
+                <Button IsVisible="{Binding HorarioSeleccionado, Converter={StaticResource IsNotNullConverter}}"
+                        Text="✨ CREAR CITA"
+                        Command="{Binding CrearCitaCommand}"
+                        BackgroundColor="#4CAF50"
+                        TextColor="White"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        CornerRadius="8"
+                        Padding="15"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
 
             </StackLayout>
 
-            <!-- Error Message -->
-            <Label Text="{Binding ErrorMessage}"
-                   TextColor="Red"
-                   IsVisible="{Binding HasError}"
-                   HorizontalOptions="Center"/>
+            <!-- MENSAJE DE ERROR -->
+            <Frame IsVisible="{Binding HasError}" 
+                   BackgroundColor="#F8D7DA" 
+                   Padding="15" 
+                   CornerRadius="10">
+                <Label Text="{Binding ErrorMessage}"
+                       TextColor="#721C24"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"/>
+            </Frame>
 
-        </VerticalStackLayout>
+            <!-- BOTONES DE NAVEGACIÓN -->
+            <StackLayout Orientation="Horizontal" 
+                         HorizontalOptions="Center" 
+                         Spacing="10"
+                         Margin="0,20,0,0">
+
+                <Button Text="🏠 Menú Principal"
+                        BackgroundColor="Gray"
+                        TextColor="White"
+                        Command="{Binding VolverAlMenuCommand}"/>
+
+                <Button Text="🔄 Limpiar Formulario"
+                        BackgroundColor="Orange"
+                        TextColor="White"
+                        Command="{Binding LimpiarFormularioCommand}"/>
+            </StackLayout>
+
+        </StackLayout>
     </ScrollView>
 </ContentPage>
