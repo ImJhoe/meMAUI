@@ -607,10 +607,79 @@ namespace ClinicaApp.Services
             return await PostAsync<Paciente>("api/pacientes", paciente);
         }
 
-        public async Task<ApiResponse<List<Horario>>> ObtenerHorariosDisponiblesAsync(int medicoId, DateTime fecha)
+        public async Task<ApiResponse<List<HorarioDisponible>>> ObtenerHorariosDisponiblesAsync(int medicoId, DateTime fecha)
         {
-            var fechaStr = fecha.ToString("yyyy-MM-dd");
-            return await GetAsync<List<Horario>>($"api/horarios/medico/{medicoId}/disponibles?fecha={fechaStr}");
+            try
+            {
+                var fechaStr = fecha.ToString("yyyy-MM-dd");
+                var url = $"api/horarios/medico/{medicoId}/disponibles?fecha={fechaStr}";
+
+                System.Diagnostics.Debug.WriteLine($"[API] Obteniendo horarios disponibles: {url}");
+
+                var response = await _httpClient.GetAsync(url);
+                var content = await response.Content.ReadAsStringAsync();
+
+                System.Diagnostics.Debug.WriteLine($"[API] Status horarios disponibles: {response.StatusCode}");
+                System.Diagnostics.Debug.WriteLine($"[API] Content horarios disponibles: {content}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonDocument = JsonDocument.Parse(content);
+                    var root = jsonDocument.RootElement;
+
+                    if (root.TryGetProperty("success", out var successProperty) &&
+                        successProperty.GetBoolean() &&
+                        root.TryGetProperty("data", out var dataProperty))
+                    {
+                        var horarios = new List<HorarioDisponible>();
+
+                        foreach (var item in dataProperty.EnumerateArray())
+                        {
+                            try
+                            {
+                                var horario = new HorarioDisponible
+                                {
+                                    Hora = item.TryGetProperty("hora", out var horaProp) ? horaProp.GetString() ?? "" : "",
+                                    FechaHora = item.TryGetProperty("fecha_hora", out var fechaHoraProp) ? fechaHoraProp.GetString() ?? "" : "",
+                                    IdSucursal = item.TryGetProperty("id_sucursal", out var sucursalProp) ? sucursalProp.GetInt32() : 0,
+                                    Disponible = item.TryGetProperty("disponible", out var disponibleProp) ? disponibleProp.GetBoolean() : true
+                                };
+
+                                horarios.Add(horario);
+                                System.Diagnostics.Debug.WriteLine($"[API] Horario disponible agregado: {horario.Hora} - Sucursal: {horario.IdSucursal}");
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[API] Error procesando horario disponible: {ex.Message}");
+                            }
+                        }
+
+                        return new ApiResponse<List<HorarioDisponible>>
+                        {
+                            Success = true,
+                            Data = horarios,
+                            Message = $"Se encontraron {horarios.Count} horarios disponibles"
+                        };
+                    }
+                }
+
+                return new ApiResponse<List<HorarioDisponible>>
+                {
+                    Success = false,
+                    Message = $"Error del servidor: {response.StatusCode}",
+                    Data = new List<HorarioDisponible>()
+                };
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[API ERROR] Error obteniendo horarios disponibles: {ex.Message}");
+                return new ApiResponse<List<HorarioDisponible>>
+                {
+                    Success = false,
+                    Message = $"Error: {ex.Message}",
+                    Data = new List<HorarioDisponible>()
+                };
+            }
         }
 
         public async Task<ApiResponse<Cita>> CrearCitaAsync(Cita cita)

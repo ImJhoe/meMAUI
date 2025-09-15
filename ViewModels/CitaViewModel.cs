@@ -17,7 +17,7 @@ namespace ClinicaApp.ViewModels
             _apiService = apiService;
             Title = "PUNTO 3: Crear Cita";
             Medicos = new ObservableCollection<Medico>();
-            HorariosDisponibles = new ObservableCollection<Horario>();
+            HorariosDisponibles = new ObservableCollection<HorarioDisponible>();
             FechaSeleccionada = DateTime.Today.AddDays(1);
 
             System.Diagnostics.Debug.WriteLine("[CITA VM] 🎯 PUNTO 3: ViewModel inicializado");
@@ -41,7 +41,7 @@ namespace ClinicaApp.ViewModels
         private Medico? medicoSeleccionado;
 
         [ObservableProperty]
-        private Horario? horarioSeleccionado;
+        private HorarioDisponible? horarioSeleccionado;
 
         [ObservableProperty]
         private DateTime fechaSeleccionada;
@@ -51,9 +51,10 @@ namespace ClinicaApp.ViewModels
 
         [ObservableProperty]
         private bool mostrandoPaciente;
+       
 
         public ObservableCollection<Medico> Medicos { get; }
-        public ObservableCollection<Horario> HorariosDisponibles { get; }
+        public ObservableCollection<HorarioDisponible> HorariosDisponibles { get; private set; }
 
         // COMANDO PRINCIPAL - PUNTO 3: Búsqueda por cédula
         [RelayCommand]
@@ -165,7 +166,7 @@ namespace ClinicaApp.ViewModels
             }
         }
 
-        // ✅ PUNTO 7: Cargar horarios disponibles del médico
+        // Actualizar el método CargarHorariosDisponiblesAsync
         private async Task CargarHorariosDisponiblesAsync()
         {
             if (MedicoSeleccionado == null) return;
@@ -213,6 +214,7 @@ namespace ClinicaApp.ViewModels
 
         // Crear la cita
         [RelayCommand]
+        // Actualizar el método CrearCitaAsync para usar el nuevo modelo
         private async Task CrearCitaAsync()
         {
             if (!ValidarCita())
@@ -225,8 +227,8 @@ namespace ClinicaApp.ViewModels
                 ShowLoading(true);
                 ClearError();
 
-                // Construir fecha y hora de la cita
-                DateTime fechaHoraCita = ConstruirFechaHora(FechaSeleccionada, HorarioSeleccionado!.HoraInicio);
+                // Construir fecha y hora de la cita usando HorarioDisponible
+                DateTime fechaHoraCita = HorarioSeleccionado!.FechaHoraCompleta;
 
                 System.Diagnostics.Debug.WriteLine($"[CITA] 📊 Datos de la cita:");
                 System.Diagnostics.Debug.WriteLine($"  - Paciente ID: {PacienteEncontrado!.IdPaciente}");
@@ -239,7 +241,7 @@ namespace ClinicaApp.ViewModels
                 {
                     IdPaciente = PacienteEncontrado!.IdPaciente,
                     IdDoctor = MedicoSeleccionado!.IdMedico,
-                    IdSucursal = HorarioSeleccionado!.IdSucursal,
+                    IdSucursal = HorarioSeleccionado!.IdSucursal, // ✅ Ahora viene del horario seleccionado
                     FechaHora = fechaHoraCita,
                     Motivo = MotivoCita.Trim(),
                     TipoCita = "presencial",

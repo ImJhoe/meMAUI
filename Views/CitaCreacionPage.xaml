@@ -161,11 +161,11 @@
                                TextColor="Gray"/>
 
                         <Picker Title="Seleccione un horario"
-                                ItemsSource="{Binding HorariosDisponibles}"
-                                ItemDisplayBinding="{Binding HoraInicio}"
-                                SelectedItem="{Binding HorarioSeleccionado}"
-                                FontSize="16"
-                                IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
+        ItemsSource="{Binding HorariosDisponibles}"
+        ItemDisplayBinding="{Binding HoraTexto}"
+        SelectedItem="{Binding HorarioSeleccionado}"
+        FontSize="16"
+        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertedBoolConverter}}"/>
                     </StackLayout>
                 </Frame>
 
