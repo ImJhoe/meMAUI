@@ -11,7 +11,8 @@ public partial class PacienteRegistroPage : ContentPage
 
         // Crear ViewModel manualmente
         var httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri("http://192.168.1.8:8081/webservice-slim/");
+        // Cambiar línea 14:
+        httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
         var apiService = new ClinicaApp.Services.ApiService(httpClient);
 
         BindingContext = new PacienteRegistroViewModel(apiService);

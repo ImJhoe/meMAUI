@@ -12,8 +12,9 @@ public static class MauiProgram
     private static readonly bool USE_CABLE = false; // true = cable, false = wifi
 
     // IPs conocidas
-    private static readonly string CABLE_IP = "192.168.1.8";
-    private static readonly string WIFI_IP = "192.168.1.14";
+   // Cambiar líneas 15-16:
+private static readonly string CABLE_IP = "192.168.93.154";
+private static readonly string WIFI_IP = "192.168.93.154";
 
     public static MauiApp CreateMauiApp()
     {
@@ -30,27 +31,20 @@ public static class MauiProgram
         var selectedIP = USE_CABLE ? CABLE_IP : WIFI_IP;
         var connectionType = USE_CABLE ? "CABLE" : "WIFI";
 
-        // HttpClient con IP seleccionada
-        builder.Services.AddHttpClient<ApiService>(client =>
+        // ✅ REGISTRAR ApiService PRIMERO
+        builder.Services.AddSingleton<ApiService>(provider =>
         {
+            var httpClient = new HttpClient();
             var baseUrl = $"http://{selectedIP}:8081/webservice-slim/";
-            client.BaseAddress = new Uri(baseUrl);
-            client.Timeout = TimeSpan.FromSeconds(60);
-            client.DefaultRequestHeaders.ConnectionClose = false;
+            httpClient.BaseAddress = new Uri(baseUrl);
+            httpClient.Timeout = TimeSpan.FromSeconds(60);
+            httpClient.DefaultRequestHeaders.ConnectionClose = false;
 
             Console.WriteLine($"🌐 Usando {connectionType}: {baseUrl}");
-        })
-        .ConfigurePrimaryHttpMessageHandler(() =>
-        {
-            var handler = new HttpClientHandler();
-#if DEBUG
-            handler.ServerCertificateCustomValidationCallback =
-                (message, cert, chain, errors) => true;
-#endif
-            return handler;
+            return new ApiService(httpClient);
         });
 
-        // Resto de configuraciones...
+        // ✅ REGISTRAR ViewModels CON DEPENDENCIA DE ApiService
         builder.Services.AddSingleton<LoginViewModel>();
         builder.Services.AddSingleton<AdminMenuViewModel>();
         builder.Services.AddSingleton<MedicoRegistroViewModel>();
@@ -59,10 +53,9 @@ public static class MauiProgram
         builder.Services.AddSingleton<CitaViewModel>();
         builder.Services.AddSingleton<HorariosMedicosViewModel>();
         builder.Services.AddSingleton<CitasListaViewModel>();
+        builder.Services.AddSingleton<PacienteRegistroViewModel>();
 
-
-
-
+        // ✅ REGISTRAR Pages
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<AdminMenuPage>();
         builder.Services.AddTransient<MedicoRegistroPage>();
@@ -72,8 +65,6 @@ public static class MauiProgram
         builder.Services.AddTransient<PacienteRegistroPage>();
         builder.Services.AddTransient<CitasListaPage>();
         builder.Services.AddTransient<HorariosMedicosPage>();
-        builder.Services.AddSingleton<ApiService>();
-
 
 #if DEBUG
         builder.Logging.AddDebug();

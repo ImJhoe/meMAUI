@@ -40,8 +40,24 @@ namespace ClinicaApp.ViewModels
         }
 
         // Constructor sin parámetros para cuando no hay DI
-        public HorariosMedicosViewModel() : this(new ApiService(new HttpClient()))
+        public HorariosMedicosViewModel()
         {
+            // ✅ CORREGIDO: Crear HttpClient con configuración correcta
+            var httpClient = new HttpClient();
+            // Cambiar línea aproximada 56:
+            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
+            httpClient.Timeout = TimeSpan.FromSeconds(60);
+
+            _apiService = new ApiService(httpClient);
+            Title = "Horarios Médicos";
+            MensajeInfo = "Seleccione una fecha para ver horarios disponibles";
+
+            // Inicializar colecciones
+            Medicos = new ObservableCollection<MedicoHorarioViewModel>();
+            HorariosDisponibles = new ObservableCollection<HorarioDisponibleViewModel>();
+
+            // Cargar médicos al inicializar
+            Task.Run(async () => await CargarMedicosAsync());
         }
 
         [RelayCommand]
@@ -65,9 +81,9 @@ namespace ClinicaApp.ViewModels
                         {
                             IdMedico = medico.IdMedico,
                             Nombre = medico.NombreCompleto,
-                            // ✅ CORREGIDO: Acceso seguro a especialidad
-                            Especialidad = medico.Especialidad?.NombreEspecialidad ?? "Especialidad médica",
-                            Horario = "Clic para ver horarios detallados",
+                            // ✅ CORREGIDO: Usar NombreEspecialidad en lugar de Especialidad
+                            Especialidad = medico.NombreEspecialidad ?? "Sin especialidad",
+                            Horario = "Cargando horarios...",
                             Disponible = true,
                             CedulaMedico = medico.Cedula
                         };
@@ -75,20 +91,22 @@ namespace ClinicaApp.ViewModels
                         Medicos.Add(medicoViewModel);
                     }
 
-                    System.Diagnostics.Debug.WriteLine($"[HORARIOS] Médicos cargados: {Medicos.Count}");
-                    MensajeInfo = $"Se encontraron {Medicos.Count} médicos disponibles";
+                    MensajeInfo = $"Se cargaron {Medicos.Count} médicos exitosamente";
+                    System.Diagnostics.Debug.WriteLine($"[HORARIOS] ✅ {Medicos.Count} médicos cargados");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("[HORARIOS] No se obtuvieron médicos del API");
-                    await CargarDatosEjemploAsync();
+                    System.Diagnostics.Debug.WriteLine("[HORARIOS] No se encontraron médicos, cargando datos de ejemplo");
+                    await CargarMedicosEjemplo();
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Error cargando médicos: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HORARIOS] ❌ Error cargando médicos: {ex.Message}");
                 ShowError($"Error al cargar médicos: {ex.Message}");
-                await CargarDatosEjemploAsync();
+
+                // En caso de error, cargar datos de ejemplo
+                await CargarMedicosEjemplo();
             }
             finally
             {
@@ -97,151 +115,88 @@ namespace ClinicaApp.ViewModels
         }
 
         [RelayCommand]
-        private async Task VerHorariosDisponibles()
+        private async Task BuscarHorariosDisponibles()
         {
             try
             {
                 ShowLoading(true);
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Viendo horarios para fecha: {FechaSeleccionada:yyyy-MM-dd}");
-
                 HorariosDisponibles.Clear();
-                MostrandoHorarios = true;
 
-                // Obtener horarios disponibles para todos los médicos en la fecha seleccionada
-                var fechaParam = FechaSeleccionada.ToString("yyyy-MM-dd");
+                System.Diagnostics.Debug.WriteLine($"[HORARIOS] 🔍 Buscando horarios para {FechaSeleccionada:dd/MM/yyyy}");
+
+                if (!Medicos.Any())
+                {
+                    ShowError("No hay médicos disponibles");
+                    return;
+                }
+
+                var fecha = FechaSeleccionada.ToString("yyyy-MM-dd");
+                var horariosEncontrados = 0;
 
                 foreach (var medico in Medicos)
                 {
-                    await CargarHorariosParaMedicoAsync(medico, fechaParam);
-                }
-
-                if (HorariosDisponibles.Any())
-                {
-                    MensajeInfo = $"Se encontraron {HorariosDisponibles.Count} horarios disponibles para el {FechaSeleccionada:dd/MM/yyyy}";
-                }
-                else
-                {
-                    MensajeInfo = $"No hay horarios disponibles para el {FechaSeleccionada:dd/MM/yyyy}";
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Error: {ex.Message}");
-                ShowError($"Error al cargar horarios: {ex.Message}");
-            }
-            finally
-            {
-                ShowLoading(false);
-            }
-        }
-
-        private async Task CargarHorariosParaMedicoAsync(MedicoHorarioViewModel medico, string fecha)
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Cargando horarios para médico {medico.IdMedico} en fecha {fecha}");
-
-                // ✅ CORREGIDO: Usar el método existente ObtenerHorariosDisponiblesAsync
-                var horariosResponse = await _apiService.ObtenerHorariosDisponiblesAsync(medico.IdMedico, DateTime.Parse(fecha));
-
-                if (horariosResponse.Success && horariosResponse.Data != null)
-                {
-                    var horariosDisponiblesDelMedico = horariosResponse.Data.Where(h => h.Disponible).ToList();
-
-                    foreach (var horario in horariosDisponiblesDelMedico)
+                    try
                     {
-                        var horarioViewModel = new HorarioDisponibleViewModel
+                        // ✅ CORREGIDO: Usar el método existente ObtenerHorariosDisponiblesAsync
+                        var horariosResponse = await _apiService.ObtenerHorariosDisponiblesAsync(medico.IdMedico, DateTime.Parse(fecha));
+
+                        if (horariosResponse.Success && horariosResponse.Data != null)
                         {
-                            IdMedico = medico.IdMedico,
-                            NombreMedico = medico.Nombre,
-                            EspecialidadMedico = medico.Especialidad,
-                            Fecha = DateTime.Parse(horario.FechaHora),
-                            Hora = DateTime.Parse(horario.FechaHora).ToString("HH:mm"),
-                            FechaHora = horario.FechaHora,
-                            Disponible = horario.Disponible,
-                            IdSucursal = horario.IdSucursal
-                        };
+                            var horariosDisponiblesDelMedico = horariosResponse.Data.Where(h => h.Disponible).ToList();
 
-                        HorariosDisponibles.Add(horarioViewModel);
-                    }
+                            foreach (var horario in horariosDisponiblesDelMedico)
+                            {
+                                var horarioViewModel = new HorarioDisponibleViewModel
+                                {
+                                    IdMedico = medico.IdMedico,
+                                    NombreMedico = medico.Nombre,
+                                    EspecialidadMedico = medico.Especialidad,
+                                    Fecha = DateTime.Parse(horario.FechaHora),
+                                    Hora = DateTime.Parse(horario.FechaHora).ToString("HH:mm"),
+                                    FechaHora = horario.FechaHora,
+                                    Disponible = horario.Disponible,
+                                    IdSucursal = horario.IdSucursal
+                                };
 
-                    // Actualizar info del médico con sus horarios
-                    var totalHorarios = horariosDisponiblesDelMedico.Count;
-                    medico.Horario = totalHorarios > 0 ? $"{totalHorarios} horarios disponibles" : "Sin horarios disponibles";
-                    medico.Disponible = totalHorarios > 0;
+                                HorariosDisponibles.Add(horarioViewModel);
+                                horariosEncontrados++;
+                            }
 
-                    System.Diagnostics.Debug.WriteLine($"[HORARIOS] Médico {medico.Nombre}: {totalHorarios} horarios disponibles");
-                }
-                else
-                {
-                    medico.Horario = "Sin horarios disponibles";
-                    medico.Disponible = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Error cargando horarios médico {medico.IdMedico}: {ex.Message}");
-                medico.Horario = "Error al cargar horarios";
-                medico.Disponible = false;
-            }
-        }
-
-        [RelayCommand]
-        private async Task VerHorariosDetallados(MedicoHorarioViewModel medico)
-        {
-            if (medico == null) return;
-
-            try
-            {
-                ShowLoading(true);
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Viendo horarios detallados del médico {medico.IdMedico}");
-
-                // ✅ CORREGIDO: Usar el método existente del ApiService
-                var horariosResponse = await _apiService.ObtenerHorariosDisponiblesAsync(medico.IdMedico, FechaSeleccionada);
-
-                if (horariosResponse.Success && horariosResponse.Data != null && horariosResponse.Data.Any())
-                {
-                    var horarios = horariosResponse.Data.Where(h => h.Disponible).ToList();
-
-                    if (horarios.Any())
-                    {
-                        var mensaje = $"HORARIOS DISPONIBLES\n" +
-                                     $"{medico.Nombre}\n" +
-                                     $"{medico.Especialidad}\n" +
-                                     $"Fecha: {FechaSeleccionada:dd/MM/yyyy}\n\n" +
-                                     $"Horarios disponibles:\n";
-
-                        foreach (var horario in horarios.Take(10)) // Mostrar máximo 10 horarios
-                        {
-                            var hora = DateTime.Parse(horario.FechaHora).ToString("HH:mm");
-                            mensaje += $"• {hora}\n";
+                            // Actualizar info del médico con sus horarios
+                            var totalHorarios = horariosDisponiblesDelMedico.Count;
+                            medico.Horario = totalHorarios > 0 ?
+                                $"{totalHorarios} horarios disponibles" :
+                                "Sin horarios disponibles";
+                            medico.Disponible = totalHorarios > 0;
                         }
-
-                        if (horarios.Count > 10)
-                        {
-                            mensaje += $"\n... y {horarios.Count - 10} horarios más";
-                        }
-
-                        mensaje += $"\n\nTotal: {horarios.Count} horarios disponibles";
-
-                        await Shell.Current.DisplayAlert("Horarios Detallados", mensaje, "OK");
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        await Shell.Current.DisplayAlert("Sin Horarios",
-                            $"El Dr(a). {medico.Nombre} no tiene horarios disponibles para el {FechaSeleccionada:dd/MM/yyyy}", "OK");
+                        System.Diagnostics.Debug.WriteLine($"[HORARIOS] Error obteniendo horarios de médico {medico.IdMedico}: {ex.Message}");
+                        medico.Horario = "Error cargando horarios";
+                        medico.Disponible = false;
                     }
+                }
+
+                MostrandoHorarios = true;
+
+                if (horariosEncontrados > 0)
+                {
+                    MensajeInfo = $"Se encontraron {horariosEncontrados} horarios disponibles para el {FechaSeleccionada:dd/MM/yyyy}";
+                    System.Diagnostics.Debug.WriteLine($"[HORARIOS] ✅ {horariosEncontrados} horarios encontrados");
                 }
                 else
                 {
-                    await Shell.Current.DisplayAlert("Sin Horarios",
-                        $"No se encontraron horarios para el Dr(a). {medico.Nombre} en la fecha seleccionada", "OK");
+                    MensajeInfo = $"No se encontraron horarios disponibles para el {FechaSeleccionada:dd/MM/yyyy}";
+                    System.Diagnostics.Debug.WriteLine("[HORARIOS] ℹ️ No hay horarios disponibles");
                 }
+
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Error horarios detallados: {ex.Message}");
-                ShowError($"Error al cargar horarios detallados: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HORARIOS] ❌ Error general: {ex.Message}");
+                ShowError($"Error al buscar horarios: {ex.Message}");
+                MensajeInfo = "Error al buscar horarios disponibles";
             }
             finally
             {
@@ -250,42 +205,55 @@ namespace ClinicaApp.ViewModels
         }
 
         [RelayCommand]
-        private async Task AgendarCita(HorarioDisponibleViewModel horario)
+        private async Task OcultarHorarios()
         {
-            if (horario == null) return;
+            MostrandoHorarios = false;
+            HorariosDisponibles.Clear();
+            MensajeInfo = "Seleccione una fecha para ver horarios disponibles";
+        }
 
-            var confirmar = await Shell.Current.DisplayAlert(
-                "Agendar Cita",
-                $"¿Desea agendar una cita con {horario.NombreMedico} el {horario.Fecha:dd/MM/yyyy} a las {horario.Hora}?",
-                "Sí", "No");
-
-            if (confirmar)
+        [RelayCommand]
+        private async Task SeleccionarHorario(HorarioDisponibleViewModel horario)
+        {
+            try
             {
-                // Navegar a la página de creación de citas con datos pre-cargados
-                var parametros = new Dictionary<string, object>
-                {
-                    ["MedicoId"] = horario.IdMedico,
-                    ["FechaHora"] = horario.FechaHora,
-                    ["SucursalId"] = horario.IdSucursal
-                };
+                var mensaje = $"¿Desea programar una cita con {horario.NombreMedico} ({horario.EspecialidadMedico}) el {horario.HorarioTexto}?";
 
-                await Shell.Current.GoToAsync("//CitaCreacionPage", parametros);
+                var confirmar = await Shell.Current.DisplayAlert("Confirmar Cita", mensaje, "Sí", "No");
+
+                if (confirmar)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[HORARIOS] Horario seleccionado: {horario.NombreMedico} - {horario.HorarioTexto}");
+
+                    // Navegar a creación de cita con datos pre-cargados
+                    var navigationParameter = new ShellNavigationQueryParameters
+                    {
+                        { "IdMedico", horario.IdMedico.ToString() },
+                        { "FechaHora", horario.FechaHora },
+                        { "NombreMedico", horario.NombreMedico }
+                    };
+
+                    await Shell.Current.GoToAsync("//CitaCreacionPage", navigationParameter);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HORARIOS] Error al seleccionar horario: {ex.Message}");
+                ShowError("Error al seleccionar horario");
             }
         }
 
-        private async Task CargarDatosEjemploAsync()
+        // Método auxiliar para cargar datos de ejemplo cuando no hay conexión API
+        private async Task CargarMedicosEjemplo()
         {
-            // Datos de ejemplo cuando falla la API
-            Medicos.Clear();
-
             var medicosEjemplo = new List<MedicoHorarioViewModel>
             {
                 new MedicoHorarioViewModel
                 {
                     IdMedico = 1,
-                    Nombre = "Dr. García Ramírez",
+                    Nombre = "Dr. García Pérez",
                     Especialidad = "Cardiología",
-                    Horario = "Lun-Vie 9:00-17:00",
+                    Horario = "Lun-Vie 8:00-16:00",
                     Disponible = true,
                     CedulaMedico = "1234567890"
                 },

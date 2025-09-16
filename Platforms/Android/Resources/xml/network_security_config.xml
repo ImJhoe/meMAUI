@@ -9,8 +9,10 @@
         <!-- <domain includeSubdomains="true">172.20.10.1</domainp -->
 		
         <!-- IPs de tus adaptadores de red actuales -->
-        <domain includeSubdomains="true">192.168.1.14</domain>
-        <domain includeSubdomains="true">192.168.1.1</domain>
+		<!-- Agregar tu nueva IP en las líneas 13-14: -->
+		<domain includeSubdomains="true">192.168.93.154</domain>
+		<domain includeSubdomains="true">192.168.93.201</domain>
+		<!-- Tu gateway -->
         <!-- IPs comunes para desarrollo -->
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
@@ -21,6 +23,7 @@
         <domain includeSubdomains="true">192.168.0.0</domain>
         <domain includeSubdomains="true">172.20.10.0</domain>
         <domain includeSubdomains="true">169.254.0.0</domain>
+		<domain includeSubdomains="true">192.168.93.0</domain>
     </domain-config>
     
     <!-- Configuración base más permisiva para desarrollo -->
