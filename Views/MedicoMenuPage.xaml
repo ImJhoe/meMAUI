@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.MedicoMenuPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="{Binding Title}"
+             BackgroundColor="#F5F5F5">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="20">
+
+            <!-- 📋 HEADER -->
+            <Frame BackgroundColor="#1976D2" 
+                   CornerRadius="15" 
+                   Padding="25,20"
+                   HasShadow="True">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <Label Text="👨‍⚕️" FontSize="28"/>
+                    <StackLayout>
+                        <Label Text="Menú Médico" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               TextColor="White"/>
+                        <Label Text="Diagnóstico y Tratamiento" 
+                               FontSize="14" 
+                               TextColor="#BBDEFB"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- 📊 LISTA DE COTEJO - PUNTOS DEL MÉDICO -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="📋 Lista de Cotejo - Puntos del Médico" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#1976D2"/>
+
+                    <!-- ✅ PUNTO 2: HISTORIAL DE TRIAJE -->
+                    <Frame BackgroundColor="#E3F2FD" 
+                           CornerRadius="10" 
+                           Padding="15"
+                           HasShadow="False">
+                        <StackLayout Spacing="10">
+                            <Label Text="✅ PUNTO 2: Historial de Triaje" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#1976D2"/>
+                            <Label Text="Pantalla para ver el triaje llenado por el recepcionista" 
+                                   FontSize="13" 
+                                   TextColor="#666"/>
+                            <Button Text="📊 VER HISTORIAL DE TRIAJE"
+                                    Command="{Binding IrAHistorialTriajeCommand}"
+                                    BackgroundColor="#1976D2"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="8"
+                                    HeightRequest="45"/>
+                        </StackLayout>
+                    </Frame>
+
+                    <!-- ✅ PUNTOS 3,4,5: CONSULTA MÉDICA -->
+                    <Frame BackgroundColor="#E8F5E8" 
+                           CornerRadius="10" 
+                           Padding="15"
+                           HasShadow="False">
+                        <StackLayout Spacing="10">
+                            <Label Text="✅ PUNTOS 3,4,5: Consulta Médica" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#4CAF50"/>
+                            <Label Text="Pantalla con checkboxes para receta médica y diagnóstico" 
+                                   FontSize="13" 
+                                   TextColor="#666"/>
+
+                            <!-- SUB-PUNTOS -->
+                            <StackLayout Spacing="5" Margin="10,5">
+                                <Label Text="• Punto 3: Checkboxes que habilitan ventanas flotantes" 
+                                       FontSize="12" 
+                                       TextColor="#666"/>
+                                <Label Text="• Punto 4: Ventana flotante - Receta médica" 
+                                       FontSize="12" 
+                                       TextColor="#666"/>
+                                <Label Text="• Punto 5: Ventana flotante - Diagnóstico/Contestación" 
+                                       FontSize="12" 
+                                       TextColor="#666"/>
+                            </StackLayout>
+
+                            <Button Text="🩺 ACCEDER A CONSULTA MÉDICA"
+                                    Command="{Binding IrAConsultaMedicaCommand}"
+                                    BackgroundColor="#4CAF50"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="8"
+                                    HeightRequest="45"/>
+                        </StackLayout>
+                    </Frame>
+                </StackLayout>
+            </Frame>
+
+            <!-- 🔧 ACCIONES RÁPIDAS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="🔧 Acciones Rápidas" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#607D8B"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="🔄 ACTUALIZAR"
+                                Command="{Binding ActualizarCommand}"
+                                BackgroundColor="#607D8B"
+                                TextColor="White"
+                                FontSize="14"
+                                CornerRadius="8"
+                                HeightRequest="45"/>
+
+                        <Button Grid.Column="1"
+                                Text="🚪 CERRAR SESIÓN"
+                                Command="{Binding CerrarSesionCommand}"
+                                BackgroundColor="#F44336"
+                                TextColor="White"
+                                FontSize="14"
+                                CornerRadius="8"
+                                HeightRequest="45"/>
+                    </Grid>
+                </StackLayout>
+            </Frame>
+
+            <!-- 📊 INDICADOR DE CARGA -->
+            <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                              IsRunning="{Binding IsBusy}"
+                              Color="#1976D2"
+                              HeightRequest="50"/>
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

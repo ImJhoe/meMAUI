@@ -2,120 +2,171 @@
 <ContentPage x:Class="ClinicaApp.Views.RecepcionistaMenuPage"
              xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:ClinicaApp.ViewModels"
-             Title="Recepcionista Menu">
-
-    <ContentPage.BindingContext>
-        <viewmodels:RecepcionistaMenuViewModel />
-    </ContentPage.BindingContext>
+             Title="{Binding Title}"
+             BackgroundColor="#F5F5F5">
 
     <ScrollView>
         <StackLayout Padding="20" Spacing="20">
 
-            <!-- HEADER -->
-            <Frame BackgroundColor="#2E7D32" Padding="15" CornerRadius="10">
-                <StackLayout>
-                    <Label Text="🏥 PANEL RECEPCIONISTA" 
-                           FontSize="24" 
-                           FontAttributes="Bold" 
-                           HorizontalOptions="Center"
-                           TextColor="White"/>
-                    <Label Text="{Binding UserName}" 
-                           FontSize="16" 
-                           HorizontalOptions="Center"
-                           TextColor="White"/>
+            <!-- 📋 HEADER -->
+            <Frame BackgroundColor="#2E7D32" 
+                   CornerRadius="15" 
+                   Padding="25,20"
+                   HasShadow="True">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <Label Text="👨‍💼" FontSize="28"/>
+                    <StackLayout>
+                        <Label Text="Menú Recepcionista/Enfermero" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               TextColor="White"/>
+                        <Label Text="Gestión de Citas y Triaje" 
+                               FontSize="14" 
+                               TextColor="#C8E6C9"/>
+                    </StackLayout>
                 </StackLayout>
             </Frame>
 
-            <!-- PUNTO 3: CREAR CITAS -->
-            <Frame BackgroundColor="#E8F5E8" Padding="15" CornerRadius="10" HasShadow="True">
-                <StackLayout Spacing="10">
-                    <Label Text="📅 PUNTO 3: CREAR CITAS" 
-                           FontSize="20" 
-                           FontAttributes="Bold"
+            <!-- 📊 LISTA DE COTEJO - PUNTOS IMPLEMENTADOS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="📋 Lista de Cotejo - Implementado" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
                            TextColor="#2E7D32"/>
 
-                    <Label Text="Pantalla de creación de cita accesible desde el menú" 
-                           FontSize="14" 
-                           TextColor="Gray"/>
-
-                    <Button Text="✨ Crear Nueva Cita"
-                            BackgroundColor="#4CAF50"
-                            TextColor="White"
-                            FontSize="18"
-                            FontAttributes="Bold"
-                            CornerRadius="8"
-                            Command="{Binding IrACrearCitaCommand}"/>
+                    <!-- ✅ PUNTO 1: TRIAJE -->
+                    <Frame BackgroundColor="#E8F5E8" 
+                           CornerRadius="10" 
+                           Padding="15"
+                           HasShadow="False">
+                        <StackLayout Spacing="10">
+                            <Label Text="✅ PUNTO 1: Registro de Triaje" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold" 
+                                   TextColor="#2E7D32"/>
+                            <Label Text="Pantalla para registrar triaje (peso, talla, presión, temperatura, etc.)" 
+                                   FontSize="13" 
+                                   TextColor="#666"/>
+                            <Button Text="📋 ACCEDER AL TRIAJE"
+                                    Command="{Binding IrATriajeCommand}"
+                                    BackgroundColor="#2E7D32"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    FontAttributes="Bold"
+                                    CornerRadius="8"
+                                    HeightRequest="45"/>
+                        </StackLayout>
+                    </Frame>
                 </StackLayout>
             </Frame>
 
-            <!-- FLUJO COMPLETO DE CITAS -->
-            <Frame BackgroundColor="#FFF3E0" Padding="15" CornerRadius="10" HasShadow="True">
-                <StackLayout Spacing="10">
-                    <Label Text="🔄 GESTIÓN DE CITAS" 
+            <!-- 🏥 GESTIÓN DE CITAS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="🏥 Gestión de Citas" 
                            FontSize="18" 
-                           FontAttributes="Bold"
-                           TextColor="#E65100"/>
+                           FontAttributes="Bold" 
+                           TextColor="#1976D2"/>
 
-                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="10" ColumnSpacing="10">
+                    <!-- CREAR CITA -->
+                    <Button Text="📅 CREAR NUEVA CITA"
+                            Command="{Binding IrACrearCitaCommand}"
+                            BackgroundColor="#1976D2"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="55"/>
 
-                        <Button Grid.Row="0" Grid.Column="0"
-                                Text="🔍 Buscar Paciente"
-                                BackgroundColor="#FF9800"
+                    <!-- VER CITAS -->
+                    <Button Text="📋 VER LISTA DE CITAS"
+                            Command="{Binding IrAListaCitasCommand}"
+                            BackgroundColor="#FF9800"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="55"/>
+
+                    <!-- REGISTRAR PACIENTE -->
+                    <Button Text="👤 REGISTRAR PACIENTE"
+                            Command="{Binding IrARegistroPacienteCommand}"
+                            BackgroundColor="#9C27B0"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="55"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- 📊 HORARIOS Y CALENDARIO -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="📊 Horarios y Calendario" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#4CAF50"/>
+
+                    <Button Text="🗓️ VER HORARIOS MÉDICOS"
+                            Command="{Binding IrAHorariosMedicosCommand}"
+                            BackgroundColor="#4CAF50"
+                            TextColor="White"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            HeightRequest="55"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- 🔧 ACCIONES RÁPIDAS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="15" 
+                   Padding="20"
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="🔧 Acciones Rápidas" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#607D8B"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Button Grid.Column="0"
+                                Text="🔄 ACTUALIZAR"
+                                Command="{Binding ActualizarCommand}"
+                                BackgroundColor="#607D8B"
                                 TextColor="White"
-                                Command="{Binding IrACrearCitaCommand}"/>
+                                FontSize="14"
+                                CornerRadius="8"
+                                HeightRequest="45"/>
 
-                        <Button Grid.Row="0" Grid.Column="1"
-                                Text="👤 Registrar Paciente"
-                                BackgroundColor="#FF9800"
+                        <Button Grid.Column="1"
+                                Text="🚪 CERRAR SESIÓN"
+                                Command="{Binding CerrarSesionCommand}"
+                                BackgroundColor="#F44336"
                                 TextColor="White"
-                                Command="{Binding IrARegistroPacienteCommand}"/>
-
-                        <Button Grid.Row="1" Grid.Column="0"
-                                Text="📋 Ver Citas"
-                                BackgroundColor="#FF9800"
-                                TextColor="White"
-                                Command="{Binding VerCitasCommand}"/>
-
-                        <Button Grid.Row="1" Grid.Column="1"
-                                Text="🗓️ Horarios Médicos"
-                                BackgroundColor="#FF9800"
-                                TextColor="White"
-                                Command="{Binding VerHorariosMedicosCommand}"/>
-
+                                FontSize="14"
+                                CornerRadius="8"
+                                HeightRequest="45"/>
                     </Grid>
                 </StackLayout>
             </Frame>
 
-            <!-- INFORMACIÓN -->
-            <Frame BackgroundColor="#E3F2FD" Padding="15" CornerRadius="10">
-                <StackLayout>
-                    <Label Text="ℹ️ FUNCIONALIDADES DISPONIBLES" 
-                           FontSize="16" 
-                           FontAttributes="Bold"
-                           TextColor="#1976D2"/>
-
-                    <Label FontSize="14" TextColor="#424242">
-                        <Label.FormattedText>
-                            <FormattedString>
-                                <Span Text="✓ Buscar pacientes por cédula" />
-                                <Span Text="&#x0a;✓ Registrar nuevos pacientes" />
-                                <Span Text="&#x0a;✓ Crear citas médicas" />
-                                <Span Text="&#x0a;✓ Ver horarios disponibles" />
-                                <Span Text="&#x0a;✓ Flujo completo de citas" />
-                            </FormattedString>
-                        </Label.FormattedText>
-                    </Label>
-                </StackLayout>
-            </Frame>
-
-            <!-- CERRAR SESIÓN -->
-            <Button Text="🚪 Cerrar Sesión"
-                    BackgroundColor="#D32F2F"
-                    TextColor="White"
-                    FontAttributes="Bold"
-                    CornerRadius="8"
-                    Command="{Binding LogoutCommand}"/>
+            <!-- 📊 INDICADOR DE CARGA -->
+            <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                              IsRunning="{Binding IsBusy}"
+                              Color="#2E7D32"
+                              HeightRequest="50"/>
 
         </StackLayout>
     </ScrollView>

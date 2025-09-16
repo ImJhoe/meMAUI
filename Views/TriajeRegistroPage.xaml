@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.TriajeRegistroPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="{Binding Title}"
+             BackgroundColor="#F5F5F5">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <!-- 📋 HEADER -->
+            <Frame BackgroundColor="#2E7D32" 
+                   CornerRadius="10" 
+                   Padding="20,15"
+                   HasShadow="True">
+                <StackLayout Orientation="Horizontal" Spacing="15">
+                    <Label Text="📋" FontSize="24"/>
+                    <StackLayout>
+                        <Label Text="PUNTO 1: Registro de Triaje" 
+                               FontSize="18" 
+                               FontAttributes="Bold" 
+                               TextColor="White"/>
+                        <Label Text="Recepcionista/Enfermero" 
+                               FontSize="14" 
+                               TextColor="#C8E6C9"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- 🔍 SELECCIÓN DE CITA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="📅 Seleccionar Cita" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2E7D32"/>
+
+                    <Picker Title="Seleccione una cita"
+                            ItemsSource="{Binding CitasDisponibles}"
+                            ItemDisplayBinding="{Binding DisplayText}"
+                            SelectedItem="{Binding CitaSeleccionada}"
+                            BackgroundColor="#F8F9FA"
+                            TextColor="#333"/>
+
+                    <!-- INFO PACIENTE -->
+                    <StackLayout IsVisible="{Binding MostrarInfoPaciente}" 
+                                 Spacing="5">
+                        <BoxView HeightRequest="1" BackgroundColor="#E0E0E0"/>
+                        <Label Text="{Binding InfoPaciente}" 
+                               FontSize="14" 
+                               TextColor="#666"
+                               Margin="0,5"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- 📊 SIGNOS VITALES -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="📊 Signos Vitales" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2E7D32"/>
+
+                    <!-- TEMPERATURA -->
+                    <StackLayout Spacing="5">
+                        <Label Text="🌡️ Temperatura (°C)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding Temperatura}"
+                               Placeholder="Ej: 36.5"
+                               Keyboard="Numeric"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+
+                    <!-- PRESIÓN ARTERIAL -->
+                    <StackLayout Spacing="5">
+                        <Label Text="💓 Presión Arterial (mmHg)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding PresionArterial}"
+                               Placeholder="Ej: 120/80"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+
+                    <!-- FRECUENCIA CARDÍACA -->
+                    <StackLayout Spacing="5">
+                        <Label Text="❤️ Frecuencia Cardíaca (lpm)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding FrecuenciaCardiaca}"
+                               Placeholder="Ej: 72"
+                               Keyboard="Numeric"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+
+                    <!-- FRECUENCIA RESPIRATORIA -->
+                    <StackLayout Spacing="5">
+                        <Label Text="🫁 Frecuencia Respiratoria (rpm)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding FrecuenciaRespiratoria}"
+                               Placeholder="Ej: 16"
+                               Keyboard="Numeric"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+
+                    <!-- SATURACIÓN DE OXÍGENO -->
+                    <StackLayout Spacing="5">
+                        <Label Text="🫁 Saturación de Oxígeno (%)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding SaturacionOxigeno}"
+                               Placeholder="Ej: 98"
+                               Keyboard="Numeric"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- 📏 MEDIDAS ANTROPOMÉTRICAS -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="📏 Medidas Antropométricas" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2E7D32"/>
+
+                    <!-- PESO -->
+                    <StackLayout Spacing="5">
+                        <Label Text="⚖️ Peso (kg)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding Peso}"
+                               Placeholder="Ej: 70.5"
+                               Keyboard="Numeric"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+
+                    <!-- TALLA -->
+                    <StackLayout Spacing="5">
+                        <Label Text="📐 Talla (cm)" 
+                               FontSize="14" 
+                               TextColor="#333"/>
+                        <Entry Text="{Binding Talla}"
+                               Placeholder="Ej: 175"
+                               Keyboard="Numeric"
+                               BackgroundColor="#F8F9FA"
+                               TextColor="#333"/>
+                    </StackLayout>
+
+                    <!-- IMC CALCULADO -->
+                    <StackLayout IsVisible="{Binding MostrarIMC}" 
+                                 Spacing="5">
+                        <BoxView HeightRequest="1" BackgroundColor="#E0E0E0"/>
+                        <Label Text="{Binding IMCCalculado, StringFormat='📊 IMC Calculado: {0:F2} kg/m²'}" 
+                               FontSize="14" 
+                               FontAttributes="Bold"
+                               TextColor="#2E7D32"/>
+                        <Label Text="{Binding ClasificacionIMC}" 
+                               FontSize="12" 
+                               TextColor="#666"/>
+                    </StackLayout>
+                </StackLayout>
+            </Frame>
+
+            <!-- ⚠️ NIVEL DE URGENCIA -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="⚠️ Nivel de Urgencia" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2E7D32"/>
+
+                    <Picker Title="Seleccione nivel"
+                            ItemsSource="{Binding NivelesUrgencia}"
+                            ItemDisplayBinding="{Binding Descripcion}"
+                            SelectedItem="{Binding NivelUrgenciaSeleccionado}"
+                            BackgroundColor="#F8F9FA"
+                            TextColor="#333"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- 📝 OBSERVACIONES -->
+            <Frame BackgroundColor="White" 
+                   CornerRadius="10" 
+                   Padding="15" 
+                   HasShadow="True">
+                <StackLayout Spacing="10">
+                    <Label Text="📝 Observaciones" 
+                           FontSize="16" 
+                           FontAttributes="Bold" 
+                           TextColor="#2E7D32"/>
+
+                    <Editor Text="{Binding Observaciones}"
+                            Placeholder="Agregue observaciones adicionales del triaje..."
+                            HeightRequest="100"
+                            BackgroundColor="#F8F9FA"
+                            TextColor="#333"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- ✅ BOTONES DE ACCIÓN -->
+            <StackLayout Spacing="10" Margin="0,10">
+                <Button Text="💾 REGISTRAR TRIAJE"
+                        Command="{Binding RegistrarTriajeCommand}"
+                        BackgroundColor="#2E7D32"
+                        TextColor="White"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        HeightRequest="50"/>
+
+                <Button Text="🔄 LIMPIAR FORMULARIO"
+                        Command="{Binding LimpiarFormularioCommand}"
+                        BackgroundColor="#757575"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="10"
+                        HeightRequest="45"/>
+            </StackLayout>
+
+            <!-- 📊 INDICADOR DE CARGA -->
+            <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                              IsRunning="{Binding IsBusy}"
+                              Color="#2E7D32"
+                              HeightRequest="50"/>
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>

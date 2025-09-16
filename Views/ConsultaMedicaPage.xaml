@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.ConsultaMedicaPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="{Binding Title}"
+             BackgroundColor="#F5F5F5">
+
+    <Grid>
+        <!-- CONTENIDO PRINCIPAL -->
+        <ScrollView>
+            <StackLayout Padding="20" Spacing="15">
+
+                <!-- 📋 HEADER -->
+                <Frame BackgroundColor="#4CAF50" 
+                       CornerRadius="10" 
+                       Padding="20,15"
+                       HasShadow="True">
+                    <StackLayout Orientation="Horizontal" Spacing="15">
+                        <Label Text="🩺" FontSize="24"/>
+                        <StackLayout>
+                            <Label Text="PUNTOS 3,4,5: Consulta Médica" 
+                                   FontSize="18" 
+                                   FontAttributes="Bold" 
+                                   TextColor="White"/>
+                            <Label Text="Diagnóstico y Tratamiento" 
+                                   FontSize="14" 
+                                   TextColor="#C8E6C9"/>
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+
+                <!-- 📋 RESUMEN DEL TRIAJE -->
+                <Frame BackgroundColor="White" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True"
+                       IsVisible="{Binding MostrarResumenTriaje}">
+                    <StackLayout Spacing="10">
+                        <Label Text="📊 Resumen del Triaje" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#4CAF50"/>
+
+                        <Label Text="{Binding ResumenTriaje}" 
+                               FontSize="14" 
+                               TextColor="#666"/>
+                    </StackLayout>
+                </Frame>
+
+                <!-- ✅ PUNTO 3: CHECKBOXES PRINCIPALES -->
+                <Frame BackgroundColor="White" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True">
+                    <StackLayout Spacing="15">
+                        <Label Text="🎯 PUNTO 3: Acciones de Consulta" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#4CAF50"/>
+
+                        <!-- CHECKBOX RECETA MÉDICA -->
+                        <StackLayout Orientation="Horizontal" Spacing="10">
+                            <CheckBox IsChecked="{Binding HabilitarReceta}"
+                                      Color="#FF9800"/>
+                            <Label Text="💊 Crear Receta Médica (PUNTO 4)" 
+                                   FontSize="15" 
+                                   FontAttributes="Bold"
+                                   TextColor="#FF9800"
+                                   VerticalOptions="Center"/>
+                        </StackLayout>
+
+                        <!-- CHECKBOX DIAGNÓSTICO -->
+                        <StackLayout Orientation="Horizontal" Spacing="10">
+                            <CheckBox IsChecked="{Binding HabilitarDiagnostico}"
+                                      Color="#2196F3"/>
+                            <Label Text="📋 Agregar Diagnóstico (PUNTO 5)" 
+                                   FontSize="15" 
+                                   FontAttributes="Bold"
+                                   TextColor="#2196F3"
+                                   VerticalOptions="Center"/>
+                        </StackLayout>
+
+                        <!-- BOTONES PARA ABRIR VENTANAS FLOTANTES -->
+                        <StackLayout Spacing="10" Margin="0,10">
+                            <Button Text="💊 ABRIR VENTANA DE RECETA"
+                                    Command="{Binding AbrirVentanaRecetaCommand}"
+                                    IsEnabled="{Binding HabilitarReceta}"
+                                    BackgroundColor="#FF9800"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    CornerRadius="8"
+                                    HeightRequest="45"/>
+
+                            <Button Text="📋 ABRIR VENTANA DE DIAGNÓSTICO"
+                                    Command="{Binding AbrirVentanaDiagnosticoCommand}"
+                                    IsEnabled="{Binding HabilitarDiagnostico}"
+                                    BackgroundColor="#2196F3"
+                                    TextColor="White"
+                                    FontSize="14"
+                                    CornerRadius="8"
+                                    HeightRequest="45"/>
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+
+                <!-- 📊 HISTORIAL DE CONSULTAS PREVIAS -->
+                <Frame BackgroundColor="White" 
+                       CornerRadius="10" 
+                       Padding="15" 
+                       HasShadow="True"
+                       IsVisible="{Binding TieneConsultasPrevias}">
+                    <StackLayout Spacing="10">
+                        <Label Text="📚 Consultas Previas" 
+                               FontSize="16" 
+                               FontAttributes="Bold" 
+                               TextColor="#4CAF50"/>
+
+                        <CollectionView ItemsSource="{Binding ConsultasPrevias}"
+                                        HeightRequest="200">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Frame BackgroundColor="#F8F9FA" 
+                                           CornerRadius="5" 
+                                           Padding="10"
+                                           Margin="0,2"
+                                           HasShadow="False">
+                                        <StackLayout Spacing="5">
+                                            <Label Text="{Binding FechaHora, StringFormat='📅 {0:dd/MM/yyyy HH:mm}'}" 
+                                                   FontSize="12" 
+                                                   FontAttributes="Bold"
+                                                   TextColor="#333"/>
+                                            <Label Text="{Binding Diagnostico}" 
+                                                   FontSize="13" 
+                                                   TextColor="#666"/>
+                                        </StackLayout>
+                                    </Frame>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </StackLayout>
+                </Frame>
+
+                <!-- 📊 INDICADOR DE CARGA -->
+                <ActivityIndicator IsVisible="{Binding IsBusy}" 
+                                  IsRunning="{Binding IsBusy}"
+                                  Color="#4CAF50"
+                                  HeightRequest="50"/>
+
+            </StackLayout>
+        </ScrollView>
+
+        <!-- ✅ PUNTO 4: VENTANA FLOTANTE - RECETA MÉDICA -->
+        <Frame IsVisible="{Binding MostrarVentanaReceta}"
+               BackgroundColor="#80000000"
+               HasShadow="False"
+               CornerRadius="0"
+               Padding="0">
+            <Grid>
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
+                       Padding="20"
+                       Margin="20,50"
+                       HasShadow="True"
+                       VerticalOptions="FillAndExpand">
+                    <ScrollView>
+                        <StackLayout Spacing="15">
+                            <!-- HEADER RECETA -->
+                            <StackLayout Orientation="Horizontal" Spacing="10">
+                                <Label Text="💊 PUNTO 4: Receta Médica" 
+                                       FontSize="18" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#FF9800"
+                                       HorizontalOptions="FillAndExpand"/>
+                                <Button Text="✖️"
+                                        Command="{Binding CerrarVentanaRecetaCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#666"
+                                        FontSize="18"
+                                        Padding="5"
+                                        WidthRequest="40"
+                                        HeightRequest="40"/>
+                            </StackLayout>
+
+                            <!-- MEDICAMENTOS -->
+                            <StackLayout Spacing="8">
+                                <Label Text="💊 Medicamentos" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding Medicamentos}"
+                                        Placeholder="Ej: Paracetamol 500mg - 1 tableta cada 8 horas&#x0a;Ibuprofeno 400mg - 1 tableta cada 12 horas"
+                                        HeightRequest="120"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- INSTRUCCIONES -->
+                            <StackLayout Spacing="8">
+                                <Label Text="📋 Instrucciones" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding InstruccionesReceta}"
+                                        Placeholder="Instrucciones especiales para el paciente..."
+                                        HeightRequest="100"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- FECHAS -->
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                <StackLayout Grid.Column="0" Spacing="5">
+                                    <Label Text="📅 Fecha Emisión" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold"
+                                           TextColor="#333"/>
+                                    <DatePicker Date="{Binding FechaEmision}"
+                                                BackgroundColor="#F8F9FA"/>
+                                </StackLayout>
+
+                                <StackLayout Grid.Column="1" Spacing="5">
+                                    <Label Text="⏰ Fecha Vencimiento" 
+                                           FontSize="14" 
+                                           FontAttributes="Bold"
+                                           TextColor="#333"/>
+                                    <DatePicker Date="{Binding FechaVencimiento}"
+                                                BackgroundColor="#F8F9FA"/>
+                                </StackLayout>
+                            </Grid>
+
+                            <!-- OBSERVACIONES RECETA -->
+                            <StackLayout Spacing="8">
+                                <Label Text="📝 Observaciones" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding ObservacionesReceta}"
+                                        Placeholder="Observaciones adicionales..."
+                                        HeightRequest="80"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- BOTONES RECETA -->
+                            <StackLayout Spacing="10" Margin="0,10">
+                                <Button Text="💾 GUARDAR RECETA"
+                                        Command="{Binding GuardarRecetaCommand}"
+                                        BackgroundColor="#FF9800"
+                                        TextColor="White"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        CornerRadius="10"
+                                        HeightRequest="50"/>
+
+                                <Button Text="🔄 LIMPIAR"
+                                        Command="{Binding LimpiarRecetaCommand}"
+                                        BackgroundColor="#757575"
+                                        TextColor="White"
+                                        FontSize="14"
+                                        CornerRadius="8"
+                                        HeightRequest="40"/>
+                            </StackLayout>
+                        </StackLayout>
+                    </ScrollView>
+                </Frame>
+            </Grid>
+        </Frame>
+
+        <!-- ✅ PUNTO 5: VENTANA FLOTANTE - DIAGNÓSTICO/CONTESTACIÓN -->
+        <Frame IsVisible="{Binding MostrarVentanaDiagnostico}"
+               BackgroundColor="#80000000"
+               HasShadow="False"
+               CornerRadius="0"
+               Padding="0">
+            <Grid>
+                <Frame BackgroundColor="White"
+                       CornerRadius="15"
+                       Padding="20"
+                       Margin="20,50"
+                       HasShadow="True"
+                       VerticalOptions="FillAndExpand">
+                    <ScrollView>
+                        <StackLayout Spacing="15">
+                            <!-- HEADER DIAGNÓSTICO -->
+                            <StackLayout Orientation="Horizontal" Spacing="10">
+                                <Label Text="📋 PUNTO 5: Diagnóstico/Contestación" 
+                                       FontSize="18" 
+                                       FontAttributes="Bold" 
+                                       TextColor="#2196F3"
+                                       HorizontalOptions="FillAndExpand"/>
+                                <Button Text="✖️"
+                                        Command="{Binding CerrarVentanaDiagnosticoCommand}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#666"
+                                        FontSize="18"
+                                        Padding="5"
+                                        WidthRequest="40"
+                                        HeightRequest="40"/>
+                            </StackLayout>
+
+                            <!-- MOTIVO CONSULTA -->
+                            <StackLayout Spacing="8">
+                                <Label Text="🔍 Motivo de Consulta" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding MotivoConsulta}"
+                                        Placeholder="Descripción del motivo de la consulta..."
+                                        HeightRequest="100"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- SINTOMATOLOGÍA -->
+                            <StackLayout Spacing="8">
+                                <Label Text="🩺 Sintomatología" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding Sintomatologia}"
+                                        Placeholder="Síntomas observados y reportados por el paciente..."
+                                        HeightRequest="120"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- DIAGNÓSTICO PRINCIPAL -->
+                            <StackLayout Spacing="8">
+                                <Label Text="🎯 Diagnóstico" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding Diagnostico}"
+                                        Placeholder="Diagnóstico principal y diferencial..."
+                                        HeightRequest="120"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- TRATAMIENTO -->
+                            <StackLayout Spacing="8">
+                                <Label Text="💉 Tratamiento" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding Tratamiento}"
+                                        Placeholder="Plan de tratamiento recomendado..."
+                                        HeightRequest="100"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- OBSERVACIONES DIAGNÓSTICO -->
+                            <StackLayout Spacing="8">
+                                <Label Text="📝 Observaciones" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <Editor Text="{Binding ObservacionesDiagnostico}"
+                                        Placeholder="Observaciones adicionales y recomendaciones..."
+                                        HeightRequest="100"
+                                        BackgroundColor="#F8F9FA"
+                                        TextColor="#333"/>
+                            </StackLayout>
+
+                            <!-- FECHA SEGUIMIENTO -->
+                            <StackLayout Spacing="8">
+                                <Label Text="📅 Fecha de Seguimiento" 
+                                       FontSize="14" 
+                                       FontAttributes="Bold"
+                                       TextColor="#333"/>
+                                <DatePicker Date="{Binding FechaSeguimiento}"
+                                            BackgroundColor="#F8F9FA"/>
+                            </StackLayout>
+
+                            <!-- BOTONES DIAGNÓSTICO -->
+                            <StackLayout Spacing="10" Margin="0,10">
+                                <Button Text="💾 GUARDAR DIAGNÓSTICO"
+                                        Command="{Binding GuardarDiagnosticoCommand}"
+                                        BackgroundColor="#2196F3"
+                                        TextColor="White"
+                                        FontSize="16"
+                                        FontAttributes="Bold"
+                                        CornerRadius="10"
+                                        HeightRequest="50"/>
+
+                                <Button Text="🔄 LIMPIAR"
+                                        Command="{Binding LimpiarDiagnosticoCommand}"
+                                        BackgroundColor="#757575"
+                                        TextColor="White"
+                                        FontSize="14"
+                                        CornerRadius="8"
+                                        HeightRequest="40"/>
+                            </StackLayout>
+                        </StackLayout>
+                    </ScrollView>
+                </Frame>
+            </Grid>
+        </Frame>
+    </Grid>
+
+</ContentPage>

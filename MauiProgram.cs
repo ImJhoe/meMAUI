@@ -44,7 +44,7 @@ private static readonly string WIFI_IP = "192.168.93.154";
             return new ApiService(httpClient);
         });
 
-        // ✅ REGISTRAR ViewModels CON DEPENDENCIA DE ApiService
+        // ✅ REGISTRAR ViewModels EXISTENTES
         builder.Services.AddSingleton<LoginViewModel>();
         builder.Services.AddSingleton<AdminMenuViewModel>();
         builder.Services.AddSingleton<MedicoRegistroViewModel>();
@@ -55,7 +55,12 @@ private static readonly string WIFI_IP = "192.168.93.154";
         builder.Services.AddSingleton<CitasListaViewModel>();
         builder.Services.AddSingleton<PacienteRegistroViewModel>();
 
-        // ✅ REGISTRAR Pages
+        // ✅ REGISTRAR NUEVOS ViewModels - LISTA DE COTEJO
+        builder.Services.AddSingleton<TriajeRegistroViewModel>();        // PUNTO 1
+        builder.Services.AddSingleton<MedicoHistorialViewModel>();       // PUNTO 2
+        builder.Services.AddSingleton<ConsultaMedicaViewModel>();        // PUNTOS 3,4,5
+
+        // ✅ REGISTRAR Pages EXISTENTES
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<AdminMenuPage>();
         builder.Services.AddTransient<MedicoRegistroPage>();
@@ -65,6 +70,11 @@ private static readonly string WIFI_IP = "192.168.93.154";
         builder.Services.AddTransient<PacienteRegistroPage>();
         builder.Services.AddTransient<CitasListaPage>();
         builder.Services.AddTransient<HorariosMedicosPage>();
+
+        // ✅ REGISTRAR NUEVAS Pages - LISTA DE COTEJO
+        builder.Services.AddTransient<TriajeRegistroPage>();            // PUNTO 1
+        builder.Services.AddTransient<MedicoHistorialPage>();           // PUNTO 2
+        builder.Services.AddTransient<ConsultaMedicaPage>();            // PUNTOS 3,4,5
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -56,6 +56,29 @@
         Title="Horarios Médicos"
         ContentTemplate="{DataTemplate views:HorariosMedicosPage}"
         Route="HorariosMedicosPage" />
+    <!-- ✅ RECEPCIONISTA/ENFERMERO -->
+    <ShellContent
+        Title="Recepcionista Menu"
+        ContentTemplate="{DataTemplate views:RecepcionistaMenuPage}"
+        Route="RecepcionistaMenuPage" />
+
+    <!-- ✅ PUNTO 1: REGISTRO DE TRIAJE -->
+    <ShellContent
+        Title="Registro de Triaje"
+        ContentTemplate="{DataTemplate views:TriajeRegistroPage}"
+        Route="TriajeRegistroPage" />
+    <!-- ✅ MÉDICO -->
+    <!-- ✅ PUNTO 2: HISTORIAL/VISTA DE TRIAJE -->
+    <ShellContent
+        Title="Historial Triaje"
+        ContentTemplate="{DataTemplate views:MedicoHistorialPage}"
+        Route="MedicoHistorialPage" />
+
+    <!-- ✅ PUNTO 3,4,5: CONSULTA MÉDICA CON CHECKBOXES -->
+    <ShellContent
+        Title="Consulta Médica"
+        ContentTemplate="{DataTemplate views:ConsultaMedicaPage}"
+        Route="ConsultaMedicaPage" />
 
 
     <!-- MÉDICO --><!--
