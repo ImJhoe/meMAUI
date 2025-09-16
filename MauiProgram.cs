@@ -57,7 +57,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<MedicoConsultaViewModel>();
         builder.Services.AddSingleton<RecepcionistaMenuViewModel>();
         builder.Services.AddSingleton<CitaViewModel>();
-  
+        builder.Services.AddSingleton<HorariosMedicosViewModel>();
+        builder.Services.AddSingleton<CitasListaViewModel>();
+
+
 
 
         builder.Services.AddTransient<LoginPage>();
@@ -67,6 +70,9 @@ public static class MauiProgram
         builder.Services.AddTransient<RecepcionistaMenuPage>();
         builder.Services.AddTransient<CitaCreacionPage>();
         builder.Services.AddTransient<PacienteRegistroPage>();
+        builder.Services.AddTransient<CitasListaPage>();
+        builder.Services.AddTransient<HorariosMedicosPage>();
+        builder.Services.AddSingleton<ApiService>();
 
 
 #if DEBUG

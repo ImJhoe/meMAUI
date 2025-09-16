@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ClinicaApp.Views.HorariosMedicosPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+
+            <!-- HEADER -->
+            <Frame BackgroundColor="#FFF3E0" Padding="15" CornerRadius="10">
+                <StackLayout>
+                    <Label Text="🗓️ HORARIOS MÉDICOS" 
+                           FontSize="20" 
+                           FontAttributes="Bold"
+                           HorizontalOptions="Center"
+                           TextColor="#E65100"/>
+                    <Label Text="{Binding MensajeInfo}"
+                           FontSize="14"
+                           HorizontalOptions="Center"
+                           TextColor="#424242"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- SELECCIÓN DE FECHA -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="8" HasShadow="True">
+                <StackLayout Spacing="15">
+                    <Label Text="📅 SELECCIONAR FECHA" FontAttributes="Bold" TextColor="#333"/>
+
+                    <StackLayout>
+                        <Label Text="Fecha para consultar horarios:" FontSize="14"/>
+                        <DatePicker Date="{Binding FechaSeleccionada}" 
+                                   BackgroundColor="#F5F5F5"
+                                   MinimumDate="{x:Static x:DateTime.Today}"
+                                   Format="dd/MM/yyyy"/>
+                    </StackLayout>
+
+                    <Button Text="🔍 Ver Horarios Disponibles" 
+                           BackgroundColor="#FF9800"
+                           TextColor="White"
+                           FontAttributes="Bold"
+                           Command="{Binding VerHorariosDisponiblesCommand}"/>
+                </StackLayout>
+            </Frame>
+
+            <!-- LISTA DE MÉDICOS -->
+            <Frame BackgroundColor="White" Padding="15" CornerRadius="8" HasShadow="True">
+                <StackLayout>
+                    <Label Text="👨‍⚕️ MÉDICOS DISPONIBLES" FontAttributes="Bold" FontSize="16" Margin="0,0,0,15"/>
+
+                    <CollectionView ItemsSource="{Binding Medicos}"
+                                   EmptyView="Cargando médicos...">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="#FAFAFA" Padding="15" Margin="0,5" CornerRadius="8" HasShadow="False">
+                                    <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+
+                                        <!-- Fila 1: Nombre y Estado -->
+                                        <Label Grid.Row="0" Grid.Column="0" 
+                                               Text="{Binding Nombre}" 
+                                               FontAttributes="Bold" 
+                                               FontSize="16"
+                                               TextColor="#333"/>
+                                        <Label Grid.Row="0" Grid.Column="1" 
+                                               Text="{Binding IconoDisponibilidad}" 
+                                               FontSize="18"/>
+
+                                        <!-- Fila 2: Especialidad -->
+                                        <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="{Binding Especialidad}" 
+                                               FontSize="14" 
+                                               TextColor="#2196F3"
+                                               FontAttributes="Bold"/>
+
+                                        <!-- Fila 3: Horario/Disponibilidad -->
+                                        <Label Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="{Binding Horario}" 
+                                               FontSize="13" 
+                                               TextColor="{Binding EstadoColor}"
+                                               FontAttributes="Bold"/>
+
+                                        <!-- Fila 4: Botón Ver Horarios -->
+                                        <Button Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="📅 Ver Horarios Detallados"
+                                               BackgroundColor="#4CAF50"
+                                               TextColor="White"
+                                               FontSize="14"
+                                               Margin="0,10,0,0"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.VerHorariosDetalladosCommand}"
+                                               CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- HORARIOS DISPONIBLES (solo se muestra si hay horarios) -->
+            <Frame BackgroundColor="#E8F5E8" 
+                   Padding="15" 
+                   CornerRadius="8" 
+                   HasShadow="True"
+                   IsVisible="{Binding MostrandoHorarios}">
+                <StackLayout>
+                    <Label Text="⏰ HORARIOS DISPONIBLES" FontAttributes="Bold" FontSize="16" Margin="0,0,0,10"/>
+
+                    <CollectionView ItemsSource="{Binding HorariosDisponibles}"
+                                   EmptyView="No hay horarios disponibles para la fecha seleccionada">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Frame BackgroundColor="White" Padding="12" Margin="0,3" CornerRadius="6" HasShadow="False">
+                                    <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+
+                                        <!-- Fila 1: Médico -->
+                                        <Label Grid.Row="0" Grid.Column="0" 
+                                               Text="{Binding NombreMedico}" 
+                                               FontAttributes="Bold" 
+                                               FontSize="14"
+                                               TextColor="#333"/>
+                                        <Label Grid.Row="0" Grid.Column="1" 
+                                               Text="{Binding Hora}" 
+                                               FontAttributes="Bold"
+                                               FontSize="16"
+                                               TextColor="#4CAF50"/>
+
+                                        <!-- Fila 2: Especialidad -->
+                                        <Label Grid.Row="1" Grid.Column="0" 
+                                               Text="{Binding EspecialidadMedico}" 
+                                               FontSize="12" 
+                                               TextColor="#666"/>
+
+                                        <!-- Fila 3: Botón Agendar -->
+                                        <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                               Text="📋 Agendar Cita"
+                                               BackgroundColor="#2196F3"
+                                               TextColor="White"
+                                               FontSize="12"
+                                               Margin="0,8,0,0"
+                                               Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AgendarCitaCommand}"
+                                               CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Frame>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </StackLayout>
+            </Frame>
+
+            <!-- BOTONES DE NAVEGACIÓN -->
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Grid.Column="0"
+                        Text="🔄 Actualizar"
+                        BackgroundColor="#FF9800"
+                        TextColor="White"
+                        Command="{Binding CargarMedicosCommand}"/>
+                <Button Grid.Column="1"
+                        Text="🏠 Volver al Menú"
+                        BackgroundColor="#757575"
+                        TextColor="White"
+                        Command="{Binding VolverAlMenuCommand}"/>
+            </Grid>
+
+        </StackLayout>
+    </ScrollView>
+</ContentPage>

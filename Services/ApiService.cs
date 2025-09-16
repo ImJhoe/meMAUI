@@ -681,8 +681,42 @@ namespace ClinicaApp.Services
                 };
             }
         }
+        // Métodos HTTP directos (no genéricos) con nombres únicos
+        public async Task<HttpResponseMessage> GetHttpAsync(string endpoint)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET] {endpoint}");
+                var response = await _httpClient.GetAsync(endpoint);
+                System.Diagnostics.Debug.WriteLine($"[GET] Status: {response.StatusCode}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET ERROR] {ex.Message}");
+                throw;
+            }
+        }
 
-       public async Task<ApiResponse<Cita>> CrearCitaAsync(Cita cita)
+        public async Task<HttpResponseMessage> PostHttpAsync(string endpoint, object data)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(data, _jsonOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                System.Diagnostics.Debug.WriteLine($"[POST] {endpoint} - Data: {json}");
+                var response = await _httpClient.PostAsync(endpoint, content);
+                System.Diagnostics.Debug.WriteLine($"[POST] Status: {response.StatusCode}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[POST ERROR] {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<ApiResponse<Cita>> CrearCitaAsync(Cita cita)
 {
     try
     {

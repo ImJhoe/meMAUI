@@ -45,7 +45,18 @@
         Title="Registro Paciente"
         ContentTemplate="{DataTemplate views:PacienteRegistroPage}"
         Route="PacienteRegistroPage" />
-   
+    <!-- Lista de Citas -->
+    <ShellContent
+        Title="Lista de Citas"
+        ContentTemplate="{DataTemplate views:CitasListaPage}"
+        Route="CitasListaPage" />
+
+    <!-- Horarios Médicos / Calendario -->
+    <ShellContent
+        Title="Horarios Médicos"
+        ContentTemplate="{DataTemplate views:HorariosMedicosPage}"
+        Route="HorariosMedicosPage" />
+
 
     <!-- MÉDICO --><!--
     <ShellContent
