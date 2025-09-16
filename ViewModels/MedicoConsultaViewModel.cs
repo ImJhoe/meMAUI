@@ -15,7 +15,7 @@ namespace ClinicaApp.ViewModels
         public MedicoConsultaViewModel()
         {
             var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("http://192.168.1.8:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
 
             InitializeViewModel();
@@ -71,7 +71,7 @@ namespace ClinicaApp.ViewModels
                 ClearError();
 
                 var httpClient = new HttpClient();
-                httpClient.BaseAddress = new Uri("http://192.168.1.8:8081/webservice-slim/");
+                httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
 
                 var response = await httpClient.GetAsync("api/medicos");
                 var content = await response.Content.ReadAsStringAsync();

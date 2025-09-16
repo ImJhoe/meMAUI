@@ -2,12 +2,25 @@
 <network-security-config>
     <!-- Permitir HTTP en toda la red local -->
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">192.168.1.8</domain>
-        <domain includeSubdomains="true">192.168.0.1</domain>
+        <!-- IPs de tus adaptadores de red actuales -->
+        <!-- <domain includeSubdomains="true">169.254.191.224</domain> -->
+        <!-- <domain includeSubdomains="true">169.254.57.149</domain> -->
+        <!-- <domain includeSubdomains="true">172.20.10.2</domain> -->
+        <!-- <domain includeSubdomains="true">172.20.10.1</domainp -->
+		
+        <!-- IPs de tus adaptadores de red actuales -->
+        <domain includeSubdomains="true">192.168.1.14</domain>
         <domain includeSubdomains="true">192.168.1.1</domain>
+        <!-- IPs comunes para desarrollo -->
         <domain includeSubdomains="true">localhost</domain>
-        <domain includeSubdomains="true">10.0.2.2</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        
+        <!-- Rangos de red privada comunes -->
+        <domain includeSubdomains="true">192.168.1.0</domain>
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">172.20.10.0</domain>
+        <domain includeSubdomains="true">169.254.0.0</domain>
     </domain-config>
     
     <!-- Configuración base más permisiva para desarrollo -->

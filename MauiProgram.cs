@@ -8,6 +8,13 @@ namespace ClinicaApp;
 
 public static class MauiProgram
 {
+    // 🎛️ CAMBIA AQUÍ SEGÚN TU CONEXIÓN
+    private static readonly bool USE_CABLE = false; // true = cable, false = wifi
+
+    // IPs conocidas
+    private static readonly string CABLE_IP = "192.168.1.8";
+    private static readonly string WIFI_IP = "192.168.1.14";
+
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -19,12 +26,19 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
             });
 
-        // HttpClient
+        // Seleccionar IP según configuración
+        var selectedIP = USE_CABLE ? CABLE_IP : WIFI_IP;
+        var connectionType = USE_CABLE ? "CABLE" : "WIFI";
+
+        // HttpClient con IP seleccionada
         builder.Services.AddHttpClient<ApiService>(client =>
         {
-            client.BaseAddress = new Uri("http://192.168.1.8:8081/webservice-slim/");
+            var baseUrl = $"http://{selectedIP}:8081/webservice-slim/";
+            client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(60);
             client.DefaultRequestHeaders.ConnectionClose = false;
+
+            Console.WriteLine($"🌐 Usando {connectionType}: {baseUrl}");
         })
         .ConfigurePrimaryHttpMessageHandler(() =>
         {
@@ -36,27 +50,24 @@ public static class MauiProgram
             return handler;
         });
 
-        // VIEWMODELS - Registrar como SINGLETON
+        // Resto de configuraciones...
         builder.Services.AddSingleton<LoginViewModel>();
         builder.Services.AddSingleton<AdminMenuViewModel>();
         builder.Services.AddSingleton<MedicoRegistroViewModel>();
         builder.Services.AddSingleton<MedicoConsultaViewModel>();
         builder.Services.AddSingleton<RecepcionistaMenuViewModel>();
         builder.Services.AddSingleton<CitaViewModel>();
+  
 
-        // ✅ REMOVIDO: PacienteRegistroViewModel (se crea manualmente en la página)
-        // builder.Services.AddSingleton<PacienteRegistroViewModel>();
 
-        // PAGES - Registrar como TRANSIENT
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<AdminMenuPage>();
         builder.Services.AddTransient<MedicoRegistroPage>();
         builder.Services.AddTransient<MedicoConsultaPage>();
         builder.Services.AddTransient<RecepcionistaMenuPage>();
         builder.Services.AddTransient<CitaCreacionPage>();
-
-        // ✅ PÁGINA sin DI (se instancia con constructor sin parámetros)
         builder.Services.AddTransient<PacienteRegistroPage>();
+
 
 #if DEBUG
         builder.Logging.AddDebug();

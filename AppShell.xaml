@@ -45,6 +45,7 @@
         Title="Registro Paciente"
         ContentTemplate="{DataTemplate views:PacienteRegistroPage}"
         Route="PacienteRegistroPage" />
+   
 
     <!-- MÉDICO --><!--
     <ShellContent
