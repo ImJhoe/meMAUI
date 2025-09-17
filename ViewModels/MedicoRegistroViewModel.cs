@@ -15,7 +15,7 @@ namespace ClinicaApp.ViewModels
         {
             var httpClient = new HttpClient();
             // Línea 17, cambiar:
-            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
             InitializeViewModel();
         }

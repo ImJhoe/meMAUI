@@ -16,7 +16,7 @@ namespace ClinicaApp.ViewModels
         public ConsultaMedicaViewModel()
         {
             var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
             InitializeViewModel();
         }
@@ -53,32 +53,50 @@ namespace ClinicaApp.ViewModels
         // ==================== PROPIEDADES DE TRIAJE ====================
 
         [ObservableProperty]
-        private bool mostrarResumenTriaje;
+        private TriajeCompleto? triajeData; // ✅ Usar el modelo de ClinicaApp.Models
 
         [ObservableProperty]
         private string resumenTriaje = string.Empty;
 
-        // ==================== PUNTO 3: CHECKBOXES PRINCIPALES ====================
+        // ==================== PROPIEDADES DE CONSULTA PREVIA ====================
+
+        public ObservableCollection<ConsultaPrevia> ConsultasPrevias { get; private set; }
 
         [ObservableProperty]
-        private bool habilitarReceta;
+        private bool tieneConsultasPrevias;
+
+        // ==================== CHECKBOXES - PUNTO 3 ====================
 
         [ObservableProperty]
-        private bool habilitarDiagnostico;
-
-        // ==================== PUNTO 4: VENTANA FLOTANTE RECETA ====================
+        private bool mostrarTratamiento;
 
         [ObservableProperty]
-        private bool mostrarVentanaReceta;
+        private bool mostrarReceta;
+
+        // ==================== CAMPOS DE TRATAMIENTO - PUNTO 3 ====================
 
         [ObservableProperty]
-        private string medicamentos = string.Empty;
+        private string nombreTratamiento = string.Empty;
+
+        [ObservableProperty]
+        private DateTime fechaInicioTratamiento = DateTime.Today;
+
+        [ObservableProperty]
+        private string frecuenciaTratamiento = string.Empty;
+
+        [ObservableProperty]
+        private string duracionTratamiento = string.Empty;
+
+        // ==================== CAMPOS DE RECETA - PUNTO 4 ====================
+
+        [ObservableProperty]
+        private string medicamentosPrescritos = string.Empty;
 
         [ObservableProperty]
         private string instruccionesReceta = string.Empty;
 
         [ObservableProperty]
-        private DateTime fechaEmision;
+        private DateTime fechaEmision = DateTime.Today;
 
         [ObservableProperty]
         private DateTime fechaVencimiento;
@@ -86,10 +104,7 @@ namespace ClinicaApp.ViewModels
         [ObservableProperty]
         private string observacionesReceta = string.Empty;
 
-        // ==================== PUNTO 5: VENTANA FLOTANTE DIAGNÓSTICO ====================
-
-        [ObservableProperty]
-        private bool mostrarVentanaDiagnostico;
+        // ==================== CAMPOS DE CONSULTA ====================
 
         [ObservableProperty]
         private string motivoConsulta = string.Empty;
@@ -101,20 +116,13 @@ namespace ClinicaApp.ViewModels
         private string diagnostico = string.Empty;
 
         [ObservableProperty]
-        private string tratamiento = string.Empty;
+        private string tratamientoGeneral = string.Empty;
 
         [ObservableProperty]
-        private string observacionesDiagnostico = string.Empty;
+        private string observacionesConsulta = string.Empty;
 
         [ObservableProperty]
-        private DateTime fechaSeguimiento;
-
-        // ==================== HISTORIAL ====================
-
-        public ObservableCollection<ConsultaPrevia> ConsultasPrevias { get; private set; }
-
-        [ObservableProperty]
-        private bool tieneConsultasPrevias;
+        private DateTime fechaSeguimiento = DateTime.Today;
 
         // ==================== CAMBIO DE PROPIEDADES ====================
 
@@ -122,35 +130,31 @@ namespace ClinicaApp.ViewModels
         {
             if (value > 0)
             {
-                _ = CargarDatosCitaAsync(value);
+                _ = CargarDatosConsultaAsync();
             }
         }
 
-        // ==================== MÉTODOS API ====================
+        // ==================== MÉTODOS PRIVADOS ====================
 
-        private async Task CargarDatosCitaAsync(int idCita)
+        private async Task CargarDatosConsultaAsync()
         {
             try
             {
                 IsBusy = true;
 
-                // Cargar datos del triaje para mostrar resumen
-                var responseTriaje = await _apiService.GetAsync<TriajeCompleto>($"api/triaje/cita/{idCita}");
-                if (responseTriaje.Success && responseTriaje.Data != null)
-                {
-                    var triaje = responseTriaje.Data;
-                    MostrarResumenTriaje = true;
-                    ResumenTriaje = $"👤 {PacienteNombre} | 🌡️ {triaje.Temperatura:F1}°C | 💓 {triaje.PresionArterial} | ⚠️ Nivel {triaje.NivelUrgencia}";
-                }
+                // 1. Cargar datos del triaje
+                await CargarTriajeAsync();
 
-                // Cargar consultas previas del paciente
-                await CargarConsultasPreviasAsync(idCita);
+                // 2. Cargar consultas previas
+                await CargarConsultasPreviasAsync();
 
-                System.Diagnostics.Debug.WriteLine($"[CONSULTA] ✅ Datos cargados para cita {idCita}");
+                System.Diagnostics.Debug.WriteLine($"[CONSULTA] ✅ Datos cargados para cita {CitaId}");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error: {ex.Message}");
+                await Application.Current?.MainPage?.DisplayAlert("Error",
+                    "Error al cargar datos de la consulta", "OK");
             }
             finally
             {
@@ -158,284 +162,193 @@ namespace ClinicaApp.ViewModels
             }
         }
 
-        private async Task CargarConsultasPreviasAsync(int idCita)
+        private async Task CargarTriajeAsync()
         {
             try
             {
-                // Obtener historial de consultas del paciente
-                var response = await _apiService.GetAsync<List<ConsultaPrevia>>($"api/consultas/historial/cita/{idCita}");
+                var response = await _apiService.GetAsync<TriajeCompleto>($"api/triaje/por-cita/{CitaId}"); // ✅ Usar el modelo correcto
 
-                if (response.Success && response.Data != null && response.Data.Count > 0)
+                if (response.Success && response.Data != null)
+                {
+                    TriajeData = response.Data;
+                    ResumenTriaje = GenerarResumenTriaje(response.Data);
+                    System.Diagnostics.Debug.WriteLine("[CONSULTA] ✅ Triaje cargado");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error triaje: {ex.Message}");
+            }
+        }
+
+        private string GenerarResumenTriaje(TriajeCompleto triaje) // ✅ Usar el modelo correcto
+        {
+            var urgencia = triaje.NivelUrgencia switch
+            {
+                1 => "🔴 CRÍTICO",
+                2 => "🟠 ALTO",
+                3 => "🟡 MEDIO",
+                4 => "🟢 BAJO",
+                5 => "⚪ NO URGENTE",
+                _ => "❓ DESCONOCIDO"
+            };
+
+            return $"📊 Triaje - {urgencia} | 🌡️ {triaje.Temperatura}°C | 💓 {triaje.FrecuenciaCardiaca} bpm | 🩺 {triaje.PresionArterial}";
+        }
+
+        private async Task CargarConsultasPreviasAsync()
+        {
+            try
+            {
+                var response = await _apiService.GetAsync<List<ConsultaPrevia>>($"api/consultas/historial/{CitaId}");
+
+                if (response.Success && response.Data != null)
                 {
                     ConsultasPrevias.Clear();
                     foreach (var consulta in response.Data)
                     {
                         ConsultasPrevias.Add(consulta);
                     }
-                    TieneConsultasPrevias = true;
-                    System.Diagnostics.Debug.WriteLine($"[CONSULTA] ✅ Cargadas {ConsultasPrevias.Count} consultas previas");
-                }
-                else
-                {
-                    TieneConsultasPrevias = false;
+                    TieneConsultasPrevias = ConsultasPrevias.Count > 0;
+                    System.Diagnostics.Debug.WriteLine($"[CONSULTA] ✅ {ConsultasPrevias.Count} consultas previas");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error consultas previas: {ex.Message}");
-                TieneConsultasPrevias = false;
             }
         }
 
-        // ==================== COMANDOS PUNTO 3: VENTANAS FLOTANTES ====================
+        // ==================== COMANDOS ====================
 
         [RelayCommand]
-        private void AbrirVentanaReceta()
+        private async Task GuardarConsulta()
         {
-            if (HabilitarReceta)
+            if (string.IsNullOrEmpty(Diagnostico))
             {
-                MostrarVentanaReceta = true;
-                System.Diagnostics.Debug.WriteLine("[CONSULTA] ✅ PUNTO 4: Ventana flotante receta abierta");
-            }
-        }
-
-        [RelayCommand]
-        private void CerrarVentanaReceta()
-        {
-            MostrarVentanaReceta = false;
-        }
-
-        [RelayCommand]
-        private void AbrirVentanaDiagnostico()
-        {
-            if (HabilitarDiagnostico)
-            {
-                MostrarVentanaDiagnostico = true;
-                System.Diagnostics.Debug.WriteLine("[CONSULTA] ✅ PUNTO 5: Ventana flotante diagnóstico abierta");
-            }
-        }
-
-        [RelayCommand]
-        private void CerrarVentanaDiagnostico()
-        {
-            MostrarVentanaDiagnostico = false;
-        }
-
-        // ==================== COMANDOS PUNTO 4: RECETA MÉDICA ====================
-
-        [RelayCommand]
-        private async Task GuardarReceta()
-        {
-            if (!ValidarReceta())
+                await Application.Current?.MainPage?.DisplayAlert("⚠️ Validación",
+                    "El diagnóstico es obligatorio", "OK");
                 return;
+            }
 
             try
             {
                 IsBusy = true;
 
-                // Primero necesitamos crear/obtener la consulta médica
+                // 1. Obtener o crear consulta médica
                 var idConsulta = await ObtenerOCrearConsultaAsync();
                 if (idConsulta == 0)
                 {
-                    await Application.Current?.MainPage?.DisplayAlert("❌ Error",
-                        "No se pudo crear la consulta médica", "OK");
+                    await Application.Current?.MainPage?.DisplayAlert("Error",
+                        "Error al crear consulta médica", "OK");
                     return;
                 }
 
-                // Crear objeto receta
+                // 2. Guardar tratamiento si está habilitado
+                if (MostrarTratamiento)
+                {
+                    await GuardarTratamientoAsync(idConsulta);
+                }
+
+                // 3. Guardar receta médica si está habilitada
+                if (MostrarReceta)
+                {
+                    await GuardarRecetaAsync(idConsulta);
+                }
+
+                await Application.Current?.MainPage?.DisplayAlert("✅ Éxito",
+                    "Consulta médica guardada correctamente", "OK");
+
+                // Navegar a resumen completo
+                await Shell.Current.GoToAsync($"CitaCompletaPage?citaId={CitaId}");
+
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error: {ex.Message}");
+                await Application.Current?.MainPage?.DisplayAlert("Error",
+                    "Error al guardar consulta", "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task<bool> GuardarTratamientoAsync(int idConsulta)
+        {
+            try
+            {
+                var tratamiento = new
+                {
+                    IdConsulta = idConsulta,
+                    Nombre = NombreTratamiento,
+                    FechaInicio = FechaInicioTratamiento.ToString("yyyy-MM-dd"),
+                    Frecuencia = FrecuenciaTratamiento,
+                    Duracion = DuracionTratamiento
+                };
+
+                var response = await _apiService.PostAsync<object>("api/tratamientos", tratamiento);
+                return response.Success;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error tratamiento: {ex.Message}");
+                return false;
+            }
+        }
+
+        private async Task<bool> GuardarRecetaAsync(int idConsulta)
+        {
+            try
+            {
                 var receta = new RecetaMedica
                 {
                     IdConsulta = idConsulta,
-                    Medicamentos = Medicamentos,
+                    Medicamentos = MedicamentosPrescritos,
                     Instrucciones = InstruccionesReceta,
                     FechaEmision = FechaEmision.ToString("yyyy-MM-dd"),
                     FechaVencimiento = FechaVencimiento.ToString("yyyy-MM-dd"),
                     Observaciones = ObservacionesReceta
                 };
 
-                // ✅ CORREGIDO: Especificar tipo de respuesta
-                var response = await _apiService.PostAsync<object>("api/recetas", receta);
-
-                if (response.Success)
-                {
-                    await Application.Current?.MainPage?.DisplayAlert("✅ PUNTO 4 Completado",
-                        "Receta médica guardada exitosamente", "OK");
-
-                    LimpiarReceta();
-                    CerrarVentanaReceta();
-                }
-                else
-                {
-                    await Application.Current?.MainPage?.DisplayAlert("❌ Error",
-                        response.Message ?? "Error al guardar receta", "OK");
-                }
+                var response = await _apiService.PostAsync<object>("api/recetas-medicas", receta);
+                return response.Success;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error receta: {ex.Message}");
-                await Application.Current?.MainPage?.DisplayAlert("❌ Error",
-                    "Error de conexión al guardar receta", "OK");
-            }
-            finally
-            {
-                IsBusy = false;
+                return false;
             }
         }
 
-        [RelayCommand]
-        private void LimpiarReceta()
+        private async Task<int> ObtenerOCrearConsultaAsync()
         {
-            Medicamentos = string.Empty;
-            InstruccionesReceta = string.Empty;
-            ObservacionesReceta = string.Empty;
-            FechaEmision = DateTime.Today;
-            FechaVencimiento = DateTime.Today.AddDays(30);
-        }
-
-        // ==================== COMANDOS PUNTO 5: DIAGNÓSTICO ====================
-
-        [RelayCommand]
-        private async Task GuardarDiagnostico()
-        {
-            if (!ValidarDiagnostico())
-                return;
-
             try
             {
-                IsBusy = true;
+                // Primero verificar si ya existe una consulta
+                var responseExistente = await _apiService.GetAsync<ConsultaExistente>($"api/consultas-medicas/por-cita/{CitaId}");
 
-                // Obtener el historial del paciente
-                var idHistorial = await ObtenerHistorialPacienteAsync();
-                if (idHistorial == 0)
+                if (responseExistente.Success && responseExistente.Data != null)
                 {
-                    await Application.Current?.MainPage?.DisplayAlert("❌ Error",
-                        "No se pudo obtener el historial del paciente", "OK");
-                    return;
+                    return responseExistente.Data.IdConsulta;
                 }
 
-                // Crear objeto consulta médica
-                var consulta = new ConsultaMedica
+                // Si no existe, crear nueva consulta
+                var idHistorial = await ObtenerHistorialPacienteAsync();
+
+                var nuevaConsulta = new ConsultaMedica
                 {
                     IdCita = CitaId,
                     IdHistorial = idHistorial,
                     MotivoConsulta = MotivoConsulta,
                     Sintomatologia = Sintomatologia,
                     Diagnostico = Diagnostico,
-                    Tratamiento = Tratamiento,
-                    Observaciones = ObservacionesDiagnostico,
+                    Tratamiento = TratamientoGeneral,
+                    Observaciones = ObservacionesConsulta,
                     FechaSeguimiento = FechaSeguimiento.ToString("yyyy-MM-dd")
                 };
 
-                // ✅ CORREGIDO: Especificar tipo de respuesta
-                var response = await _apiService.PostAsync<ConsultaCreada>("api/consultas-medicas", consulta);
-
-                if (response.Success)
-                {
-                    await Application.Current?.MainPage?.DisplayAlert("✅ PUNTO 5 Completado",
-                        "Diagnóstico guardado exitosamente", "OK");
-
-                    LimpiarDiagnostico();
-                    CerrarVentanaDiagnostico();
-
-                    // Recargar consultas previas
-                    await CargarConsultasPreviasAsync(CitaId);
-                }
-                else
-                {
-                    await Application.Current?.MainPage?.DisplayAlert("❌ Error",
-                        response.Message ?? "Error al guardar diagnóstico", "OK");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[CONSULTA] ❌ Error diagnóstico: {ex.Message}");
-                await Application.Current?.MainPage?.DisplayAlert("❌ Error",
-                    "Error de conexión al guardar diagnóstico", "OK");
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        [RelayCommand]
-        private void LimpiarDiagnostico()
-        {
-            MotivoConsulta = string.Empty;
-            Sintomatologia = string.Empty;
-            Diagnostico = string.Empty;
-            Tratamiento = string.Empty;
-            ObservacionesDiagnostico = string.Empty;
-            FechaSeguimiento = DateTime.Today.AddDays(7);
-        }
-
-        // ==================== MÉTODOS DE VALIDACIÓN ====================
-
-        private bool ValidarReceta()
-        {
-            if (string.IsNullOrWhiteSpace(Medicamentos))
-            {
-                Application.Current?.MainPage?.DisplayAlert("⚠️ Validación",
-                    "Los medicamentos son requeridos", "OK");
-                return false;
-            }
-
-            if (FechaVencimiento <= FechaEmision)
-            {
-                Application.Current?.MainPage?.DisplayAlert("⚠️ Validación",
-                    "La fecha de vencimiento debe ser posterior a la emisión", "OK");
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool ValidarDiagnostico()
-        {
-            if (string.IsNullOrWhiteSpace(MotivoConsulta))
-            {
-                Application.Current?.MainPage?.DisplayAlert("⚠️ Validación",
-                    "El motivo de consulta es requerido", "OK");
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(Diagnostico))
-            {
-                Application.Current?.MainPage?.DisplayAlert("⚠️ Validación",
-                    "El diagnóstico es requerido", "OK");
-                return false;
-            }
-
-            return true;
-        }
-
-        // ==================== MÉTODOS AUXILIARES ====================
-
-        private async Task<int> ObtenerOCrearConsultaAsync()
-        {
-            try
-            {
-                // Verificar si ya existe una consulta para esta cita
-                var response = await _apiService.GetAsync<ConsultaExistente>($"api/consultas-medicas/cita/{CitaId}");
-
-                if (response.Success && response.Data != null)
-                {
-                    return response.Data.IdConsulta;
-                }
-
-                // Si no existe, crear una nueva consulta básica
-                var nuevaConsulta = new ConsultaMedica
-                {
-                    IdCita = CitaId,
-                    IdHistorial = await ObtenerHistorialPacienteAsync(),
-                    MotivoConsulta = "Consulta médica",
-                    Diagnostico = "En proceso",
-                    Sintomatologia = "",
-                    Tratamiento = "",
-                    Observaciones = ""
-                };
-
-                // ✅ CORREGIDO: Especificar tipo de respuesta
                 var responseCrear = await _apiService.PostAsync<ConsultaCreada>("api/consultas-medicas", nuevaConsulta);
 
                 if (responseCrear.Success && responseCrear.Data != null)
@@ -520,31 +433,4 @@ public class ConsultaCreada
 public class HistorialPaciente
 {
     public int IdHistorial { get; set; }
-}
-
-// ✅ MODELO TRIAJE COMPLETO (NECESARIO PARA EL RESUMEN)
-public class TriajeCompleto
-{
-    public int IdTriaje { get; set; }
-    public int IdCita { get; set; }
-    public int IdEnfermero { get; set; }
-    public string NombreEnfermero { get; set; } = string.Empty;
-    public DateTime FechaRegistro { get; set; }
-    public int NivelUrgencia { get; set; }
-    public string EstadoTriaje { get; set; } = string.Empty;
-
-    // Signos vitales
-    public double? Temperatura { get; set; }
-    public string? PresionArterial { get; set; }
-    public int? FrecuenciaCardiaca { get; set; }
-    public int? FrecuenciaRespiratoria { get; set; }
-    public int? SaturacionOxigeno { get; set; }
-
-    // Medidas antropométricas
-    public double? Peso { get; set; }
-    public double? Talla { get; set; }
-    public double? IMC { get; set; }
-
-    // Observaciones
-    public string? Observaciones { get; set; }
 }

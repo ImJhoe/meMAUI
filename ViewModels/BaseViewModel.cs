@@ -6,6 +6,9 @@ namespace ClinicaApp.ViewModels
     public partial class BaseViewModel : ObservableObject
     {
         [ObservableProperty]
+        private bool isBusy;
+
+        [ObservableProperty]
         private bool isLoading;
 
         [ObservableProperty]

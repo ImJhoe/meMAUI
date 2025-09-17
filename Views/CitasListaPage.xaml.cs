@@ -17,7 +17,7 @@ public partial class CitasListaPage : ContentPage
     {
         InitializeComponent();
         var httpClient = new HttpClient();
-        httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
+        httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
         var apiService = new ApiService(httpClient);
         BindingContext = new CitasListaViewModel(apiService);
     }

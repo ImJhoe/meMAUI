@@ -1,4 +1,4 @@
-﻿// ViewModels/TriajeRegistroViewModel.cs - PUNTO 1: Registro de Triaje
+﻿// ViewModels/TriajeRegistroViewModel.cs - PUNTO 1: Registro de Triaje - CORREGIDO
 using ClinicaApp.Models;
 using ClinicaApp.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,7 +14,7 @@ namespace ClinicaApp.ViewModels
         public TriajeRegistroViewModel()
         {
             var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
             InitializeViewModel();
         }
@@ -105,7 +105,8 @@ namespace ClinicaApp.ViewModels
             if (value != null)
             {
                 MostrarInfoPaciente = true;
-                InfoPaciente = $"👤 {value.NombrePaciente} | 📅 {value.FechaHora:dd/MM/yyyy HH:mm} | 👨‍⚕️ Dr. {value.NombreMedico}";
+                InfoPaciente = $"👤 {value.NombrePaciente} | 👨‍⚕️ Dr. {value.NombreMedico} | 📅 {value.FechaHora:dd/MM HH:mm}";
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE] ✅ Cita seleccionada: {value.IdCita}");
             }
             else
             {
@@ -124,29 +125,27 @@ namespace ClinicaApp.ViewModels
             CalcularIMC();
         }
 
-        // ==================== MÉTODOS AUXILIARES ====================
+        // ==================== MÉTODOS PRIVADOS ====================
+
+        private void CargarNivelesUrgencia()
+        {
+            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 1, Descripcion = "🟢 Nivel 1 - No urgente" });
+            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 2, Descripcion = "🟡 Nivel 2 - Poco urgente" });
+            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 3, Descripcion = "🟠 Nivel 3 - Urgente" });
+            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 4, Descripcion = "🔴 Nivel 4 - Muy urgente" });
+            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 5, Descripcion = "🔴 Nivel 5 - Emergencia" });
+        }
 
         private void CalcularIMC()
         {
             if (double.TryParse(Peso, out double pesoNum) &&
                 double.TryParse(Talla, out double tallaNum) &&
-                pesoNum > 0 && tallaNum > 0)
+                tallaNum > 0)
             {
-                double tallaMetros = tallaNum / 100;
-                ImcCalculado = pesoNum / (tallaMetros * tallaMetros);
+                double tallaMts = tallaNum / 100; // Convertir cm a metros
+                ImcCalculado = pesoNum / (tallaMts * tallaMts);
+                ClasificacionIMC = ObtenerClasificacionIMC(ImcCalculado);
                 MostrarIMC = true;
-
-                // Clasificación del IMC
-                ClasificacionIMC = ImcCalculado switch
-                {
-                    < 18.5 => "⬇️ Bajo peso",
-                    >= 18.5 and < 25 => "✅ Peso normal",
-                    >= 25 and < 30 => "⬆️ Sobrepeso",
-                    >= 30 and < 35 => "🔴 Obesidad grado I",
-                    >= 35 and < 40 => "🔴 Obesidad grado II",
-                    >= 40 => "🔴 Obesidad grado III",
-                    _ => "📊 Calculando..."
-                };
             }
             else
             {
@@ -156,14 +155,16 @@ namespace ClinicaApp.ViewModels
             }
         }
 
-        private void CargarNivelesUrgencia()
+        private string ObtenerClasificacionIMC(double imc)
         {
-            NivelesUrgencia.Clear();
-            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 1, Descripcion = "🟢 Nivel 1 - No urgente" });
-            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 2, Descripcion = "🟡 Nivel 2 - Poco urgente" });
-            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 3, Descripcion = "🟠 Nivel 3 - Urgente" });
-            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 4, Descripcion = "🔴 Nivel 4 - Muy urgente" });
-            NivelesUrgencia.Add(new NivelUrgencia { Nivel = 5, Descripcion = "🔴 Nivel 5 - Emergencia" });
+            return imc switch
+            {
+                < 18.5 => "⬇️ Bajo peso",
+                >= 18.5 and < 25 => "✅ Normal",
+                >= 25 and < 30 => "⬆️ Sobrepeso",
+                >= 30 => "🔴 Obesidad",
+                _ => "❓ No calculado"
+            };
         }
 
         // ==================== MÉTODOS API ====================
@@ -230,7 +231,8 @@ namespace ClinicaApp.ViewModels
                     Observaciones = Observaciones
                 };
 
-                var response = await _apiService.PostAsync<TriajeRegistro, object>("api/triaje", triaje);
+                // ✅ CORREGIDO: Usar PostAsync<object> en lugar de PostAsync<TriajeRegistro, object>
+                var response = await _apiService.PostAsync<object>("api/triaje", triaje);
 
                 if (response.Success)
                 {

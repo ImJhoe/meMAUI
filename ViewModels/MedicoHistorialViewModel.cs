@@ -14,7 +14,7 @@ namespace ClinicaApp.ViewModels
         public MedicoHistorialViewModel()
         {
             var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
             InitializeViewModel();
         }
@@ -57,7 +57,7 @@ namespace ClinicaApp.ViewModels
         private bool mostrarTriaje;
 
         [ObservableProperty]
-        private TriajeCompleto? triajeSeleccionado;
+        private TriajeCompleto? triajeSeleccionado; // ✅ Usar el modelo de ClinicaApp.Models
 
         [ObservableProperty]
         private DateTime fechaTriaje;
@@ -89,34 +89,24 @@ namespace ClinicaApp.ViewModels
             }
         }
 
-        partial void OnTriajeSeleccionadoChanged(TriajeCompleto? value)
+        partial void OnTriajeSeleccionadoChanged(TriajeCompleto? value) // ✅ Usar el modelo correcto
         {
             if (value != null)
             {
                 MostrarTriaje = true;
                 FechaTriaje = value.FechaRegistro;
-                TieneObservaciones = !string.IsNullOrWhiteSpace(value.Observaciones);
+                NivelUrgenciaTexto = ObtenerTextoUrgencia(value.NivelUrgencia);
+                TieneObservaciones = !string.IsNullOrEmpty(value.Observaciones);
 
-                // Formatear nivel de urgencia
-                NivelUrgenciaTexto = value.NivelUrgencia switch
-                {
-                    1 => "🟢 Nivel 1 - No urgente",
-                    2 => "🟡 Nivel 2 - Poco urgente",
-                    3 => "🟠 Nivel 3 - Urgente",
-                    4 => "🔴 Nivel 4 - Muy urgente",
-                    5 => "🔴 Nivel 5 - Emergencia",
-                    _ => "⚠️ Sin clasificar"
-                };
+                System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ✅ Triaje mostrado - Urgencia: {value.NivelUrgencia}");
             }
             else
             {
                 MostrarTriaje = false;
-                TieneObservaciones = false;
-                NivelUrgenciaTexto = string.Empty;
             }
         }
 
-        // ==================== MÉTODOS API ====================
+        // ==================== MÉTODOS PRIVADOS ====================
 
         private async Task CargarCitasConTriajeAsync()
         {
@@ -124,7 +114,6 @@ namespace ClinicaApp.ViewModels
             {
                 IsBusy = true;
 
-                // Obtener citas que ya tienen triaje registrado
                 var response = await _apiService.GetAsync<List<CitaConTriaje>>("api/citas/con-triaje");
 
                 if (response.Success && response.Data != null)
@@ -134,19 +123,19 @@ namespace ClinicaApp.ViewModels
                     {
                         CitasConTriaje.Add(cita);
                     }
-                    System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ✅ Cargadas {CitasConTriaje.Count} citas con triaje");
+                    System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ✅ {CitasConTriaje.Count} citas cargadas");
                 }
                 else
                 {
-                    await Application.Current?.MainPage?.DisplayAlert("Error",
-                        response.Message ?? "Error al cargar citas", "OK");
+                    await Application.Current?.MainPage?.DisplayAlert("Info",
+                        "No hay citas con triaje registrado", "OK");
                 }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ❌ Error: {ex.Message}");
                 await Application.Current?.MainPage?.DisplayAlert("Error",
-                    "Error de conexión al cargar citas", "OK");
+                    "Error al cargar citas", "OK");
             }
             finally
             {
@@ -160,8 +149,7 @@ namespace ClinicaApp.ViewModels
             {
                 IsBusy = true;
 
-                // Obtener datos completos del triaje
-                var response = await _apiService.GetAsync<TriajeCompleto>($"api/triaje/cita/{idCita}");
+                var response = await _apiService.GetAsync<TriajeCompleto>($"api/triaje/por-cita/{idCita}"); // ✅ Usar el modelo correcto
 
                 if (response.Success && response.Data != null)
                 {
@@ -170,8 +158,8 @@ namespace ClinicaApp.ViewModels
                 }
                 else
                 {
-                    await Application.Current?.MainPage?.DisplayAlert("Error",
-                        response.Message ?? "Error al cargar triaje", "OK");
+                    await Application.Current?.MainPage?.DisplayAlert("Info",
+                        "Error al cargar triaje", "OK");
                 }
             }
             catch (Exception ex)
@@ -184,6 +172,19 @@ namespace ClinicaApp.ViewModels
             {
                 IsBusy = false;
             }
+        }
+
+        private string ObtenerTextoUrgencia(int nivel)
+        {
+            return nivel switch
+            {
+                1 => "🔴 CRÍTICO",
+                2 => "🟠 ALTO",
+                3 => "🟡 MEDIO",
+                4 => "🟢 BAJO",
+                5 => "⚪ NO URGENTE",
+                _ => "❓ DESCONOCIDO"
+            };
         }
 
         // ==================== COMANDOS ====================
@@ -235,30 +236,4 @@ public class CitaConTriaje
     public int NivelUrgencia { get; set; }
 
     public string DisplayText => $"📅 {FechaHora:dd/MM HH:mm} - {NombrePaciente} - {MotivoConsulta}";
-}
-
-public class TriajeCompleto
-{
-    public int IdTriaje { get; set; }
-    public int IdCita { get; set; }
-    public int IdEnfermero { get; set; }
-    public string NombreEnfermero { get; set; } = string.Empty;
-    public DateTime FechaRegistro { get; set; }
-    public int NivelUrgencia { get; set; }
-    public string EstadoTriaje { get; set; } = string.Empty;
-
-    // Signos vitales
-    public double? Temperatura { get; set; }
-    public string? PresionArterial { get; set; }
-    public int? FrecuenciaCardiaca { get; set; }
-    public int? FrecuenciaRespiratoria { get; set; }
-    public int? SaturacionOxigeno { get; set; }
-
-    // Medidas antropométricas
-    public double? Peso { get; set; }
-    public double? Talla { get; set; }
-    public double? IMC { get; set; }
-
-    // Observaciones
-    public string? Observaciones { get; set; }
 }

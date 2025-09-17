@@ -30,7 +30,7 @@
         ContentTemplate="{DataTemplate views:MedicoConsultaPage}"
         Route="MedicoConsultaPage" />
 
-    <!-- ✅ RECEPCIONISTA - PUNTO 3 -->
+    <!-- ✅ RECEPCIONISTA - ÚNICA DEFINICIÓN -->
     <ShellContent
         Title="Recepcionista Menu"
         ContentTemplate="{DataTemplate views:RecepcionistaMenuPage}"
@@ -40,11 +40,13 @@
         Title="Crear Cita"
         ContentTemplate="{DataTemplate views:CitaCreacionPage}"
         Route="CitaCreacionPage" />
-    <!-- ✅ NUEVO: PUNTO 5 - Registro de Paciente -->
+
+    <!-- ✅ REGISTRO DE PACIENTE -->
     <ShellContent
         Title="Registro Paciente"
         ContentTemplate="{DataTemplate views:PacienteRegistroPage}"
         Route="PacienteRegistroPage" />
+
     <!-- Lista de Citas -->
     <ShellContent
         Title="Lista de Citas"
@@ -56,18 +58,13 @@
         Title="Horarios Médicos"
         ContentTemplate="{DataTemplate views:HorariosMedicosPage}"
         Route="HorariosMedicosPage" />
-    <!-- ✅ RECEPCIONISTA/ENFERMERO -->
-    <ShellContent
-        Title="Recepcionista Menu"
-        ContentTemplate="{DataTemplate views:RecepcionistaMenuPage}"
-        Route="RecepcionistaMenuPage" />
 
     <!-- ✅ PUNTO 1: REGISTRO DE TRIAJE -->
     <ShellContent
         Title="Registro de Triaje"
         ContentTemplate="{DataTemplate views:TriajeRegistroPage}"
         Route="TriajeRegistroPage" />
-    <!-- ✅ MÉDICO -->
+
     <!-- ✅ PUNTO 2: HISTORIAL/VISTA DE TRIAJE -->
     <ShellContent
         Title="Historial Triaje"
@@ -80,17 +77,10 @@
         ContentTemplate="{DataTemplate views:ConsultaMedicaPage}"
         Route="ConsultaMedicaPage" />
 
-
-    <!-- MÉDICO --><!--
+    <!-- MÉDICO MENU (opcional para futuro uso) -->
     <ShellContent
         Title="Médico Menu"
         ContentTemplate="{DataTemplate views:MedicoMenuPage}"
         Route="MedicoMenuPage" />
-
-    --><!-- PACIENTE --><!--
-    <ShellContent
-        Title="Paciente Menu"
-        ContentTemplate="{DataTemplate views:PacienteMenuPage}"
-        Route="PacienteMenuPage" />-->
 
 </Shell>
