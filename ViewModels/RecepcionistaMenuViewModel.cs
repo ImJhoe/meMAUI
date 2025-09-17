@@ -1,4 +1,4 @@
-﻿// ViewModels/RecepcionistaMenuViewModel.cs - VERSIÓN CORREGIDA COMPLETA
+﻿// ViewModels/RecepcionistaMenuViewModel.cs - VERSIÓN CORREGIDA
 using ClinicaApp.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -51,7 +51,8 @@ namespace ClinicaApp.ViewModels
             try
             {
                 System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] ✅ PUNTO 1: Navegando a Triaje");
-                await Shell.Current.GoToAsync("TriajeRegistroPage");
+                // ✅ CAMBIO: De "TriajeRegistroPage" a "///TriajeRegistroPage"
+                await Shell.Current.GoToAsync("///TriajeRegistroPage");
             }
             catch (Exception ex)
             {
@@ -70,7 +71,8 @@ namespace ClinicaApp.ViewModels
             try
             {
                 System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] 🔍 Navegando a buscar paciente/crear cita (Puntos 3-4)");
-                await Shell.Current.GoToAsync("CitaCreacionPage");
+                // ✅ CAMBIO: De "CitaCreacionPage" a "///CitaCreacionPage"
+                await Shell.Current.GoToAsync("///CitaCreacionPage");
             }
             catch (Exception ex)
             {
@@ -79,37 +81,40 @@ namespace ClinicaApp.ViewModels
             }
         }
 
-        // ✅ BOTÓN 2: Registrar Paciente - Va directo a registro (PUNTO 5)
-        [RelayCommand]
-        private async Task IrARegistroPaciente()
-        {
-            try
-            {
-                System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] 👤 Navegando a registro de paciente (Punto 5)");
-                await Shell.Current.GoToAsync("PacienteRegistroPage");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] ❌ Error navegando a registro paciente: {ex.Message}");
-                ShowError($"Error al navegar al registro de pacientes: {ex.Message}");
-            }
-        }
-
-        // ✅ BOTÓN 3: Ver Citas - Nueva página para listar citas
+        // ✅ BOTÓN 2: Ver Citas - Nueva página para listar citas
         [RelayCommand]
         private async Task VerCitas()
         {
             try
             {
                 System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] 📋 Navegando a ver citas");
-                await Shell.Current.GoToAsync("CitasListaPage");
+                // ✅ CAMBIO: De "CitasListaPage" a "///CitasListaPage"
+                await Shell.Current.GoToAsync("///CitasListaPage");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] ❌ Error navegando a ver citas: {ex.Message}");
 
-                // Si la página no existe, mostrar lista inline
-                await MostrarCitasTemporalAsync();
+                // Si la página no existe, mostrar mensaje informativo
+                await Application.Current?.MainPage?.DisplayAlert("Info",
+                    "Página de lista de citas en desarrollo", "OK");
+            }
+        }
+
+        // ✅ BOTÓN 3: Registrar Paciente - Va directo a registro (PUNTO 5)
+        [RelayCommand]
+        private async Task IrARegistroPaciente()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] 👤 Navegando a registro de paciente (Punto 5)");
+                // ✅ CAMBIO: De "PacienteRegistroPage" a "///PacienteRegistroPage"
+                await Shell.Current.GoToAsync("///PacienteRegistroPage");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] ❌ Error navegando a registro paciente: {ex.Message}");
+                ShowError($"Error al navegar al registro de pacientes: {ex.Message}");
             }
         }
 
@@ -120,144 +125,57 @@ namespace ClinicaApp.ViewModels
             try
             {
                 System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] 🗓️ Navegando a horarios médicos (Punto 7)");
-                await Shell.Current.GoToAsync("HorariosMedicosPage");
+                // ✅ CAMBIO: De "HorariosMedicosPage" a "///HorariosMedicosPage"
+                await Shell.Current.GoToAsync("///HorariosMedicosPage");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] ❌ Error navegando a horarios: {ex.Message}");
 
-                // Si la página no existe, mostrar horarios inline
-                await MostrarHorariosTemporalAsync();
+                // Si la página no existe, mostrar mensaje informativo
+                await Application.Current?.MainPage?.DisplayAlert("Info",
+                    "Página de horarios médicos en desarrollo", "OK");
             }
         }
 
-        // ==================== COMANDOS ALTERNATIVOS (COMPATIBILIDAD) ====================
+        // ==================== MÉTODO TEMPORAL PARA MOSTRAR CITAS ====================
 
-        [RelayCommand]
-        private async Task IrAListaCitas()
-        {
-            await VerCitas();
-        }
-
-        [RelayCommand]
-        private async Task IrAHorariosMedicos()
-        {
-            await VerHorariosMedicos();
-        }
-
-        // ==================== COMANDOS DE SISTEMA ====================
-
-        [RelayCommand]
-        private async Task Actualizar()
+        private async Task MostrarCitasTemporalAsync()
         {
             try
             {
-                IsBusy = true;
-
-                // Recargar información del usuario
-                LoadUserInfo();
-
-                // Simular actualización de datos
-                await Task.Delay(1000);
-
-                await Application.Current?.MainPage?.DisplayAlert("✅ Actualizado",
-                    "Datos actualizados correctamente", "OK");
+                await Application.Current?.MainPage?.DisplayAlert("📋 Lista de Citas",
+                    "Funcionalidad en desarrollo.\n\n" +
+                    "Próximamente podrá:\n" +
+                    "• Ver todas las citas del día\n" +
+                    "• Filtrar por médico\n" +
+                    "• Editar citas existentes\n" +
+                    "• Cancelar citas",
+                    "Entendido");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] ❌ Error actualizar: {ex.Message}");
-                ShowError("Error al actualizar datos");
-            }
-            finally
-            {
-                IsBusy = false;
+                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] Error mostrar citas temporal: {ex.Message}");
             }
         }
 
-        // Comando para cerrar sesión
+        // ==================== COMANDO DE LOGOUT ====================
+
         [RelayCommand]
         private async Task Logout()
         {
             try
             {
-                var confirmar = await Shell.Current.DisplayAlert("Confirmar", "¿Desea cerrar sesión?", "Sí", "No");
+                // Limpiar datos de sesión
+                SecureStorage.RemoveAll();
 
-                if (confirmar)
-                {
-                    System.Diagnostics.Debug.WriteLine("[RECEPCIONISTA] Cerrando sesión...");
-
-                    // Limpiar datos de usuario
-                    App.CurrentUser = null;
-
-                    // Limpiar datos almacenados
-                    SecureStorage.RemoveAll();
-
-                    // Navegar al login
-                    await Shell.Current.GoToAsync("//LoginPage");
-                }
+                // Volver al login
+                await Shell.Current.GoToAsync("//LoginPage");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] Error en logout: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[LOGOUT] Error: {ex.Message}");
                 ShowError("Error al cerrar sesión");
-            }
-        }
-
-        [RelayCommand]
-        private async Task CerrarSesion()
-        {
-            await Logout();
-        }
-
-        // ==================== MÉTODOS AUXILIARES ====================
-
-        // MÉTODOS TEMPORALES MIENTRAS CREAMOS LAS PÁGINAS ESPECÍFICAS
-        private async Task MostrarCitasTemporalAsync()
-        {
-            try
-            {
-                // Aquí podrías llamar al API para obtener citas
-                var mensaje = "📋 CITAS PROGRAMADAS\n\n" +
-                             "• Hoy: 5 citas pendientes\n" +
-                             "• Mañana: 8 citas programadas\n" +
-                             "• Esta semana: 35 citas totales\n\n" +
-                             "💡 Función completa en desarrollo";
-
-                await Shell.Current.DisplayAlert("Ver Citas", mensaje, "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] Error mostrando citas: {ex.Message}");
-            }
-        }
-
-        private async Task MostrarHorariosTemporalAsync()
-        {
-            try
-            {
-                var mensaje = "🗓️ HORARIOS MÉDICOS\n\n" +
-                             "• Lunes a Viernes: 08:00 - 18:00\n" +
-                             "• Sábados: 09:00 - 14:00\n" +
-                             "• Domingos: Cerrado\n\n" +
-                             "📅 Calendario interactivo en desarrollo";
-
-                await Shell.Current.DisplayAlert("Horarios Médicos", mensaje, "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] Error mostrando horarios: {ex.Message}");
-            }
-        }
-
-        private void ShowError(string message)
-        {
-            try
-            {
-                Application.Current?.MainPage?.DisplayAlert("Error", message, "OK");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[RECEPCIONISTA] Error mostrando mensaje: {ex.Message}");
             }
         }
     }

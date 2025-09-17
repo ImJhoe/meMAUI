@@ -173,29 +173,78 @@ namespace ClinicaApp.ViewModels
         {
             try
             {
-                IsBusy = true;
-                var response = await _apiService.GetAsync<List<CitaTriaje>>("api/citas/pendientes-triaje");
+                System.Diagnostics.Debug.WriteLine("[TRIAJE DEBUG] 🔍 Iniciando carga de citas...");
 
-                if (response.Success && response.Data != null)
+                IsBusy = true;
+
+                System.Diagnostics.Debug.WriteLine("[TRIAJE DEBUG] 📡 Llamando API...");
+
+                // OPCIÓN A: Usar HttpClient directamente para debug
+                using var httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
+
+                var response = await httpClient.GetStringAsync("api/citas/pendientes-triaje");
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 📦 Respuesta HTTP: {response}");
+
+                // Parsear JSON manualmente
+                var jsonDoc = System.Text.Json.JsonDocument.Parse(response);
+                var root = jsonDoc.RootElement;
+
+                if (root.TryGetProperty("success", out var successProp) && successProp.GetBoolean())
                 {
-                    CitasDisponibles.Clear();
-                    foreach (var cita in response.Data)
+                    System.Diagnostics.Debug.WriteLine("[TRIAJE DEBUG] ✅ Success = true");
+
+                    if (root.TryGetProperty("data", out var dataArray) && dataArray.ValueKind == System.Text.Json.JsonValueKind.Array)
                     {
-                        CitasDisponibles.Add(cita);
+                        System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 📊 Datos encontrados: {dataArray.GetArrayLength()} items");
+
+                        CitasDisponibles.Clear();
+
+                        foreach (var item in dataArray.EnumerateArray())
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 🔍 Procesando item: {item}");
+
+                            var cita = new CitaTriaje
+                            {
+                                IdCita = item.GetProperty("idCita").GetInt32(),
+                                NombrePaciente = item.GetProperty("nombrePaciente").GetString() ?? "",
+                                NombreMedico = item.GetProperty("nombreMedico").GetString() ?? "",
+                                MotivoConsulta = item.GetProperty("motivoConsulta").GetString() ?? "",
+                                FechaHora = DateTime.Parse(item.GetProperty("fechaHora").GetString() ?? DateTime.Now.ToString())
+                            };
+
+                            System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] ➕ Añadiendo: {cita.DisplayText}");
+
+                            CitasDisponibles.Add(cita);
+                        }
+
+                        System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] ✅ Total citas en colección: {CitasDisponibles.Count}");
+
+                        // Forzar actualización de UI
+                        OnPropertyChanged(nameof(CitasDisponibles));
+
+                        // Verificar que la colección no esté vacía
+                        if (CitasDisponibles.Count > 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 🎯 Primera cita: {CitasDisponibles[0].DisplayText}");
+                        }
                     }
-                    System.Diagnostics.Debug.WriteLine($"[TRIAJE] ✅ Cargadas {CitasDisponibles.Count} citas");
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[TRIAJE DEBUG] ❌ No hay propiedad 'data' o no es array");
+                    }
                 }
                 else
                 {
-                    await Application.Current?.MainPage?.DisplayAlert("Error",
-                        response.Message ?? "Error al cargar citas", "OK");
+                    System.Diagnostics.Debug.WriteLine("[TRIAJE DEBUG] ❌ Success = false o no encontrado");
                 }
+
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 🏁 Proceso terminado. Citas en colección: {CitasDisponibles.Count}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[TRIAJE] ❌ Error: {ex.Message}");
-                await Application.Current?.MainPage?.DisplayAlert("Error",
-                    "Error de conexión al cargar citas", "OK");
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 💥 EXCEPCIÓN: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 💥 Stack: {ex.StackTrace}");
             }
             finally
             {
