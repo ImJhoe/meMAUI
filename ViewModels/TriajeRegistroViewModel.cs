@@ -14,7 +14,7 @@ namespace ClinicaApp.ViewModels
         public TriajeRegistroViewModel()
         {
             var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
             InitializeViewModel();
         }
@@ -181,7 +181,7 @@ namespace ClinicaApp.ViewModels
 
                 // OPCIÓN A: Usar HttpClient directamente para debug
                 using var httpClient = new HttpClient();
-                httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
+                httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
 
                 var response = await httpClient.GetStringAsync("api/citas/pendientes-triaje");
                 System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] 📦 Respuesta HTTP: {response}");
@@ -257,6 +257,13 @@ namespace ClinicaApp.ViewModels
         [RelayCommand]
         private async Task RegistrarTriaje()
         {
+            // ✅ DEBUG TEMPORAL - agregar estas líneas al inicio
+            System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] App.CurrentUser es null: {App.CurrentUser == null}");
+            if (App.CurrentUser != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] Usuario logueado ID: {App.CurrentUser.IdUsuario}");
+                System.Diagnostics.Debug.WriteLine($"[TRIAJE DEBUG] Usuario nombre: {App.CurrentUser.NombreCompleto}");
+            }
             if (!ValidarFormulario())
                 return;
 

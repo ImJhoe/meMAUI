@@ -45,7 +45,7 @@ namespace ClinicaApp.ViewModels
             // ✅ CORREGIDO: Crear HttpClient con configuración correcta
             var httpClient = new HttpClient();
             // Cambiar línea aproximada 56:
-            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
             httpClient.Timeout = TimeSpan.FromSeconds(60);
 
             _apiService = new ApiService(httpClient);

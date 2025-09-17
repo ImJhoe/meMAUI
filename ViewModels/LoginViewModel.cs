@@ -57,7 +57,7 @@ namespace ClinicaApp.ViewModels
 
                     // ✅ NOTA: No hay token en tu respuesta actual, comentamos esta línea
                     // await SecureStorage.SetAsync("AuthToken", response.Data.Token);
-
+                    App.CurrentUser = usuario;
                     // ✅ NAVEGACIÓN INTELIGENTE SEGÚN ROL
                     await NavigateBasedOnRole(usuario.NombreRol, usuario.IdRol);
                 }
@@ -99,7 +99,7 @@ namespace ClinicaApp.ViewModels
                     case 70: // Médico
                         System.Diagnostics.Debug.WriteLine("[LOGIN] ✅ Rol Médico - Navegando a MedicoMenuPage");
                         await Shell.Current.DisplayAlert("Info", "Menú de médico en desarrollo", "OK");
-                        await Shell.Current.GoToAsync("//AdminMenuPage"); // Temporal
+                        await Shell.Current.GoToAsync("//MedicoHistorialPage"); // Temporal
                         break;
 
                     case 71: // Paciente

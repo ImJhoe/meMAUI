@@ -27,7 +27,21 @@ namespace ClinicaApp.Services
                 WriteIndented = true
             };
         }
-
+        public async Task<HttpResponseMessage> GetHttpResponseAsync(string endpoint)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET RAW] {endpoint}");
+                var response = await _httpClient.GetAsync(endpoint);
+                System.Diagnostics.Debug.WriteLine($"[GET RAW] Status: {response.StatusCode}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GET RAW ERROR] {ex.Message}");
+                throw;
+            }
+        }
         // Test de conexión
         public async Task<(bool Success, string Message)> TestConnectionAsync()
         {

@@ -13,8 +13,8 @@ public static class MauiProgram
 
     // IPs conocidas
    // Cambiar líneas 15-16:
-private static readonly string CABLE_IP = "192.168.1.14";
-private static readonly string WIFI_IP = "192.168.1.14";
+private static readonly string CABLE_IP = "192.168.93.154";
+private static readonly string WIFI_IP = "192.168.93.154";
 
     public static MauiApp CreateMauiApp()
     {

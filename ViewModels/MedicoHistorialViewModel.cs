@@ -14,7 +14,7 @@ namespace ClinicaApp.ViewModels
         public MedicoHistorialViewModel()
         {
             var httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri("http://192.168.1.14:8081/webservice-slim/");
+            httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
             _apiService = new ApiService(httpClient);
             InitializeViewModel();
         }
@@ -114,28 +114,53 @@ namespace ClinicaApp.ViewModels
             {
                 IsBusy = true;
 
-                var response = await _apiService.GetAsync<List<CitaConTriaje>>("api/citas/con-triaje");
+                // ✅ USAR HttpClient directo para debug
+                using var httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri("http://192.168.93.154:8081/webservice-slim/");
 
-                if (response.Success && response.Data != null)
+                var response = await httpClient.GetStringAsync("api/citas/con-triaje"); // ✅ CORRECTO: endpoint para lista de citas
+                System.Diagnostics.Debug.WriteLine($"[HISTORIAL DEBUG] Respuesta completa: {response}");
+
+                var jsonDoc = System.Text.Json.JsonDocument.Parse(response);
+                var root = jsonDoc.RootElement;
+
+                if (root.TryGetProperty("success", out var successProp) && successProp.GetBoolean())
                 {
-                    CitasConTriaje.Clear();
-                    foreach (var cita in response.Data)
+                    if (root.TryGetProperty("data", out var dataArray) && dataArray.ValueKind == System.Text.Json.JsonValueKind.Array)
                     {
-                        CitasConTriaje.Add(cita);
+                        CitasConTriaje.Clear();
+
+                        foreach (var item in dataArray.EnumerateArray())
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[HISTORIAL DEBUG] Item JSON: {item}");
+
+                            var fechaString = item.GetProperty("fechaHora").GetString();
+                            System.Diagnostics.Debug.WriteLine($"[HISTORIAL DEBUG] Fecha raw: {fechaString}");
+
+                            var cita = new CitaConTriaje
+                            {
+                                IdCita = item.GetProperty("idCita").GetInt32(),
+                                NombrePaciente = item.GetProperty("nombrePaciente").GetString() ?? "Sin nombre",
+                                CedulaPaciente = item.GetProperty("cedulaPaciente").GetString() ?? "",
+                                NombreMedico = item.GetProperty("nombreMedico").GetString() ?? "Sin médico",
+                                FechaHora = DateTime.TryParse(fechaString, out var fecha) ? fecha : DateTime.MinValue,
+                                MotivoConsulta = item.GetProperty("motivoConsulta").GetString() ?? "Sin motivo",
+                                NombreSucursal = item.GetProperty("nombreSucursal").GetString() ?? "Sin sucursal",
+                                NombreEspecialidad = item.GetProperty("nombreEspecialidad").GetString() ?? "",
+                                NivelUrgencia = item.GetProperty("nivelUrgencia").GetInt32()
+                            };
+
+                            System.Diagnostics.Debug.WriteLine($"[HISTORIAL DEBUG] Cita creada: {cita.DisplayText}");
+                            CitasConTriaje.Add(cita);
+                        }
+
+                        System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ✅ {CitasConTriaje.Count} citas cargadas");
                     }
-                    System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ✅ {CitasConTriaje.Count} citas cargadas");
-                }
-                else
-                {
-                    await Application.Current?.MainPage?.DisplayAlert("Info",
-                        "No hay citas con triaje registrado", "OK");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HISTORIAL] ❌ Error: {ex.Message}");
-                await Application.Current?.MainPage?.DisplayAlert("Error",
-                    "Error al cargar citas", "OK");
+                System.Diagnostics.Debug.WriteLine($"[HISTORIAL ERROR] {ex.Message}");
             }
             finally
             {
@@ -149,7 +174,8 @@ namespace ClinicaApp.ViewModels
             {
                 IsBusy = true;
 
-                var response = await _apiService.GetAsync<TriajeCompleto>($"api/triaje/por-cita/{idCita}"); // ✅ Usar el modelo correcto
+                // ✅ CORRECCIÓN: Usar el endpoint correcto
+                var response = await _apiService.GetAsync<TriajeCompleto>($"api/triaje/cita/{idCita}");
 
                 if (response.Success && response.Data != null)
                 {
@@ -159,7 +185,7 @@ namespace ClinicaApp.ViewModels
                 else
                 {
                     await Application.Current?.MainPage?.DisplayAlert("Info",
-                        "Error al cargar triaje", "OK");
+                        $"No se encontró triaje para esta cita: {response.Message}", "OK");
                 }
             }
             catch (Exception ex)
@@ -201,14 +227,14 @@ namespace ClinicaApp.ViewModels
 
             try
             {
-                // Navegar a la página de consulta médica (PUNTO 3) pasando la cita seleccionada
+                // ✅ CORREGIR: Agregar /// al inicio para rutas absolutas
                 var parametros = new Dictionary<string, object>
                 {
                     ["citaId"] = CitaSeleccionada.IdCita,
                     ["pacienteNombre"] = CitaSeleccionada.NombrePaciente
                 };
 
-                await Shell.Current.GoToAsync("ConsultaMedicaPage", parametros);
+                await Shell.Current.GoToAsync("///ConsultaMedicaPage", parametros);
             }
             catch (Exception ex)
             {
